@@ -1,0 +1,19 @@
+name: Deploy do Dashfin
+
+on:
+  push:
+    branches:
+      - main # O pipeline roda sempre que você subir algo para a branch main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v4
+
+      - name: Deploy no GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./ # Pasta onde estão seus arquivos HTML/CSS/JS
