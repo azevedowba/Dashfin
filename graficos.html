@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashfin - Análise & Gráficos</title>
+    <style>
+        :root {
+            --primary-color: #1a237e;
+            --accent-color: #2196F3;
+            --success-color: #4CAF50;
+            --danger-color: #ef5350;
+            --bg-color: #f4f6f9;
+            --card-bg: #ffffff;
+            --text-color: #333333;
+            --border-color: #e0e0e0;
+        }
+
+        body { 
+            font-family: 'Segoe UI', Arial, sans-serif; 
+            margin: 0; 
+            background-color: var(--bg-color); 
+            color: var(--text-color); 
+        }
+
+        header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 15px 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        header .logo { font-size: 1.2em; font-weight: bold; }
+
+        nav { display: flex; gap: 15px; }
+        nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            padding: 8px 16px;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+        nav a:hover { background-color: rgba(255,255,255,0.1); }
+        nav a.active { background-color: var(--accent-color); }
+
+        .container {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        .row {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        .card-grafico {
+            background: var(--card-bg);
+            border-radius: 8px;
+            padding: 25px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            border: 1px solid var(--border-color);
+        }
+
+        .card-grafico h3 {
+            margin-top: 0;
+            color: var(--primary-color);
+            font-size: 18px;
+            border-bottom: 2px solid var(--bg-color);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        .card-header-flex {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--bg-color);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .card-header-flex h3 {
+            margin: 0;
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .canvas-container {
+            position: relative;
+            width: 100%;
+            height: 400px;
+        }
+        
+        .canvas-container-vertical {
+            position: relative;
+            width: 100%;
+            min-height: 550px;
+        }
+
+        .filter-section {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 25px;
+            align-items: center;
+            background: var(--card-bg);
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            border: 1px solid var(--border-color);
+            flex-wrap: wrap;
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .filter-group label {
+            font-weight: bold;
+            font-size: 14px;
+            color: #555;
+        }
+
+        .filter-group select {
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 14px;
+            background-color: #fff;
+            min-width: 160px;
+            cursor: pointer;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .checkbox-item {
+            font-size: 14px;
+            font-weight: 600;
+            color: #555;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+        }
+
+        .checkbox-item input {
+            cursor: pointer;
+            width: 16px;
+            height: 16px;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="logo">Dashfin - Sistema Financeiro</div>
+    <nav>
+        <a href="index.html" class="nav-link">Dashboard & Histórico</a>
+        <a href="graficos.html" class="nav-link active">Análise & Gráficos</a>
+        <a href="operacoes.html" class="nav-link">Lançamentos & Importação</a>
+    </nav>
+</header>
+
+<div class="container">
+    
+    <div class="filter-section">
+        <div class="filter-group">
+            <label for="selectAnoGraficos">Ano:</label>
+            <select id="selectAnoGraficos" onchange="localStorage.setItem('dashfin_filtro_ano_graficos', this.value); processarDadosGraficos()">
+                <option value="2026" selected>2026</option>
+                <option value="2025">2025</option>
+                <option value="TODOS">Todos os Anos</option>
+            </select>
+        </div>
+
+        <div class="filter-group">
+            <label for="selectContaGraficos">Conta:</label>
+            <select id="selectContaGraficos" onchange="processarDadosGraficos()">
+                <option value="TODAS">Todas as Contas</option>
+                <option value="Banrisul">Banrisul</option>
+                <option value="Cartão Nubank">Cartão Nubank</option>
+                <option value="Cartão XP">Cartão XP</option>
+                <option value="Carteira">Carteira</option>
+                <option value="Vale Alimentação">Vale Alimentação</option>
+                <option value="Vale Refeição">Vale Refeição</option>
+            </select>
+        </div>
+
+        <div class="filter-group checkbox-group">
+            <label>Status:</label>
+            <label class="checkbox-item">
+                <input type="checkbox" id="chkStatusPago" checked onchange="processarDadosGraficos()"> Pago
+            </label>
+            <label class="checkbox-item">
+                <input type="checkbox" id="chkStatusPrevisao" checked onchange="processarDadosGraficos()"> Previsão
+            </label>
+        </div>
+
+        <button onclick="limparFiltrosGraficos()" style="background: none; border: none; color: #888; cursor: pointer; font-size: 12px; text-decoration: underline; margin-left: auto; padding: 0; font-family: inherit;">Limpar Filtros</button>
+    </div>
+
+    <div class="row">
+        
+        <div class="card-grafico">
+            <h3>Comparativo Mensal: Receitas × Despesas × Resultado Líquido</h3>
+            <div class="canvas-container">
+                <canvas id="chartMensal"></canvas>
+            </div>
+        </div>
+
+        <div class="card-grafico">
+            <h3>Ranking Geral de Despesas por Categoria (Ordem Decrescente)</h3>
+            <div class="canvas-container-vertical">
+                <canvas id="chartRanking"></canvas>
+            </div>
+        </div>
+
+        <div class="card-grafico">
+            <div class="card-header-flex">
+                <h3>Despesas por Categoria no Mês</h3>
+                <div class="filter-group">
+                    <label for="selectMesGraficos">Mês:</label>
+                    <select id="selectMesGraficos" onchange="processarDadosGraficos()">
+                        <option value="TODOS">Todos os Meses</option>
+                        <option value="JANEIRO">Janeiro</option>
+                        <option value="FEVEREIRO">Fevereiro</option>
+                        <option value="MARÇO">Março</option>
+                        <option value="ABRIL">Abril</option>
+                        <option value="MAIO">Maio</option>
+                        <option value="JUNHO">Junho</option>
+                        <option value="JULHO">Julho</option>
+                        <option value="AGOSTO">Agosto</option>
+                        <option value="SETEMBRO">Setembro</option>
+                        <option value="OUTUBRO">Outubro</option>
+                        <option value="NOVEMBRO">Novembro</option>
+                        <option value="DEZEMBRO">Dezembro</option>
+                    </select>
+                </div>
+            </div>
+            <div class="canvas-container-vertical">
+                <canvas id="chartAlfabetic"></canvas>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    let dadosLancamentosRaw = [];
+    let instanceChartMensal = null;
+    let instanceChartRanking = null;
+    let instanceChartAlfabetic = null;
+
+    const mesesNomes = ["JANEIRO","FEVEREIRO","MARÇO","ABRIL","MAIO","JUNHO","JULHO","AGOSTO","SETEMBRO","OUTUBRO","NOVEMBRO","DEZEMBRO"];
+
+    function gerarCorPorString(str) {
+        let hash = 0;
+        for (let i = 0; i < str.length; i++) {
+            hash = str.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        let color = '#';
+        for (let i = 0; i < 3; i++) {
+            let value = (hash >> (i * 8)) & 0xFF;
+            value = Math.floor((value + 120) / 2); 
+            color += ('00' + value.toString(16)).slice(-2);
+        }
+        return color;
+    }
+
+    function iniciarEscutaGraficos() {
+        db.collection("lancamentos").onSnapshot((snapshot) => {
+            dadosLancamentosRaw = [];
+            const anosEncontrados = new Set();
+
+            snapshot.forEach((doc) => {
+                let dados = doc.data();
+                dados.id = doc.id;
+                dadosLancamentosRaw.push(dados);
+
+                if (dados.data && dados.data.includes("/")) {
+                    const ano = dados.data.split("/")[2];
+                    if (ano) anosEncontrados.add(ano);
+                }
+            });
+
+            const selectAno = document.getElementById("selectAnoGraficos");
+            const valorSalvoStorage = localStorage.getItem('dashfin_filtro_ano_graficos');
+            const valorSelecionadoAntes = valorSalvoStorage || selectAno.value;
+            
+            selectAno.innerHTML = '<option value="TODOS">Todos os Anos</option>';
+            const anosOrdenados = Array.from(anosEncontrados).sort((a, b) => b - a);
+            anosOrdenados.forEach(ano => {
+                selectAno.innerHTML += `<option value="${ano}">${ano}</option>`;
+            });
+
+            if (valorSelecionadoAntes && (anosOrdenados.includes(valorSelecionadoAntes) || valorSelecionadoAntes === "TODOS")) {
+                selectAno.value = valorSelecionadoAntes;
+            } else if (anosOrdenados.length > 0) {
+                selectAno.value = anosOrdenados[0];
+            } else {
+                selectAno.value = "TODOS";
+            }
+
+            processarDadosGraficos();
+        });
+    }
+
+    function processarDadosGraficos() {
+        const anoFiltro = document.getElementById("selectAnoGraficos").value;
+        const contaFiltro = document.getElementById("selectContaGraficos").value;
+        const mesFiltro = document.getElementById("selectMesGraficos").value;
+        const chkPago = document.getElementById("chkStatusPago").checked;
+        const chkPrevisao = document.getElementById("chkStatusPrevisao").checked;
+
+        let templatesReceitas = Array(12).fill(0);
+        let templatesDespesas = Array(12).fill(0);
+        let resultadoMensal = Array(12).fill(0);
+        let rankingCategoriasGeral = {};
+        let rankingCategoriasMesAlfabetic = {};
+
+        dadosLancamentosRaw.forEach(item => {
+            const statusNormalizado = (item.status || "").trim().toLowerCase();
+            
+            if (statusNormalizado === "pago" && !chkPago) return;
+            if ((statusNormalizado === "previsão" || statusNormalizado === "previsao") && !chkPrevisao) return;
+            if (statusNormalizado !== "pago" && statusNormalizado !== "previsão" && statusNormalizado !== "previsao" && !chkPago) return;
+
+            const anoDoItem = item.data && item.data.includes("/") ? item.data.split("/")[2] : "";
+            if (anoFiltro !== "TODOS" && anoDoItem !== anoFiltro) return;
+
+            if (contaFiltro !== "TODAS" && item.contaOrigem !== contaFiltro && item.contaDestino !== contaFiltro) return;
+
+            const valor = Math.abs(parseFloat(item.valor)) || 0;
+            const mov = (item.movimentacao || "").trim().toLowerCase();
+            const mesNomeItem = (item.mes || "").trim().toUpperCase();
+            const mesIndex = mesesNomes.indexOf(mesNomeItem);
+
+            if (mesIndex !== -1) {
+                if (mov === "receita") {
+                    templatesReceitas[mesIndex] += valor;
+                } else if (mov === "despesa") {
+                    templatesDespesas[mesIndex] += valor;
+                } else if ((mov === "transferência" || mov === "transferencia") && contaFiltro !== "TODAS") {
+                    if (item.contaOrigem === contaFiltro) templatesDespesas[mesIndex] += valor;
+                    if (item.contaDestino === contaFiltro) templatesReceitas[mesIndex] += valor;
+                }
+            }
+
+            if (mov === "despesa" || (mov === "transferência" && contaFiltro !== "TODAS" && item.contaOrigem === contaFiltro)) {
+                const categoria = item.categoriaOriginal || "Sem Categoria";
+                
+                rankingCategoriasGeral[categoria] = (rankingCategoriasGeral[categoria] || 0) + valor;
+                
+                if (mesFiltro === "TODOS" || mesNomeItem === mesFiltro) {
+                    rankingCategoriasMesAlfabetic[categoria] = (rankingCategoriasMesAlfabetic[categoria] || 0) + valor;
+                }
+            }
+        });
+
+        for (let i = 0; i < 12; i++) {
+            resultadoMensal[i] = templatesReceitas[i] - templatesDespesas[i];
+        }
+
+        const listaGeralOrdenada = Object.entries(rankingCategoriasGeral).sort((a, b) => b[1] - a[1]);
+        const labelsRankingGeral = listaGeralOrdenada.map(el => el[0]);
+        const valoresRankingGeral = listaGeralOrdenada.map(el => el[1]);
+
+        const listaAlfabeticaOrdenada = Object.entries(rankingCategoriasMesAlfabetic).sort((a, b) => a[0].localeCompare(b[0]));
+        const labelsAlfabetic = listaAlfabeticaOrdenada.map(el => el[0]);
+        const valoresAlfabetic = listaAlfabeticaOrdenada.map(el => el[1]);
+
+        renderizarChartMensal(templatesReceitas, templatesDespesas, resultadoMensal);
+        renderizarChartRanking(labelsRankingGeral, valoresRankingGeral);
+        renderizarChartAlfabetic(labelsAlfabetic, valoresAlfabetic);
+    }
+
+    function renderizarChartMensal(receitas, despesas, resultados) {
+        const ctx = document.getElementById('chartMensal').getContext('2d');
+        if (instanceChartMensal) instanceChartMensal.destroy();
+
+        instanceChartMensal = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'],
+                datasets: [
+                    { label: 'Receitas (R$)', data: receitas, backgroundColor: '#4CAF50', borderRadius: 4 },
+                    { label: 'Despesas (R$)', data: despesas, backgroundColor: '#ef5350', borderRadius: 4 },
+                    { label: 'Resultado Líquido (R$)', data: resultados, backgroundColor: '#2196F3', borderRadius: 4, borderColor: '#1565C0', borderWidth: 1 }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'top' },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) label += ': ';
+                                if (context.parsed.y !== null) {
+                                    label += new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(context.parsed.y);
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { callback: value => value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 0 }) }
+                    }
+                }
+            }
+        });
+    }
+
+    function renderizarChartRanking(labels, valores) {
+        const ctx = document.getElementById('chartRanking').getContext('2d');
+        if (instanceChartRanking) instanceChartRanking.destroy();
+
+        if (labels.length === 0) {
+            labels = ["Nenhuma despesa registrada"];
+            valores = [0];
+        }
+
+        const coresGeradas = labels.map(categoria => gerarCorPorString(categoria));
+
+        instanceChartRanking = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Total Gasto (R$)',
+                    data: valores,
+                    backgroundColor: coresGeradas, 
+                    borderColor: coresGeradas.map(c => c),
+                    borderWidth: 1,
+                    borderRadius: 4,
+                    barThickness: 18
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return ' ' + new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(context.parsed.x);
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        ticks: { callback: value => value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 0 }) }
+                    },
+                    y: { ticks: { font: { size: 12, weight: '600' } } }
+                }
+            }
+        });
+    }
+
+    function renderizarChartAlfabetic(labels, valores) {
+        const ctx = document.getElementById('chartAlfabetic').getContext('2d');
+        if (instanceChartAlfabetic) instanceChartAlfabetic.destroy();
+
+        if (labels.length === 0) {
+            labels = ["Nenhum dado no período"];
+            valores = [0];
+        }
+
+        const coresGeradas = labels.map(categoria => gerarCorPorString(categoria));
+
+        instanceChartAlfabetic = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Total Gasto (R$)',
+                    data: valores,
+                    backgroundColor: coresGeradas, 
+                    borderColor: coresGeradas.map(c => c),
+                    borderWidth: 1,
+                    borderRadius: 4,
+                    barThickness: 18
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return ' ' + new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(context.parsed.x);
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        ticks: { callback: value => value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 0 }) }
+                    },
+                    y: { ticks: { font: { size: 12, weight: '600' } } }
+                }
+            }
+        });
+    }
+
+    window.addEventListener('load', iniciarEscutaGraficos);
+
+    function carregarFiltroGraficos() {
+        const salvo = localStorage.getItem('dashfin_filtro_ano_graficos');
+        const selectAno = document.getElementById("selectAnoGraficos");
+        if (salvo && selectAno) {
+            selectAno.value = salvo;
+        }
+    }
+
+    function limparFiltrosGraficos() {
+        localStorage.removeItem('dashfin_filtro_ano_graficos');
+        document.getElementById("selectContaGraficos").value = "TODAS";
+        document.getElementById("selectMesGraficos").value = "TODOS";
+        document.getElementById("chkStatusPago").checked = true;
+        document.getElementById("chkStatusPrevisao").checked = true;
+        
+        const selectAno = document.getElementById("selectAnoGraficos");
+        if (selectAno.options.length > 1) {
+            selectAno.selectedIndex = 1; 
+        } else {
+            selectAno.value = "TODOS";
+        }
+        processarDadosGraficos();
+    }
+
+    carregarFiltroGraficos();
+</script>
+</body>
+</html>
