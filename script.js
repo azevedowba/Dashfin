@@ -857,6 +857,12 @@
     }
 
     // ========== EVENT LISTENERS ==========
+    document.addEventListener('DOMContentLoaded', () => {
+    carregarFiltrosIndex(); // Carrega os filtros salvos
+    iniciarEscutaRealtime(); // Conecta ao Firebase
+    inicializarBusca();      // Inicia a busca
+    
+    // Adiciona os event listeners SOMENTE após o DOM carregar
     document.querySelectorAll("select, input[type='checkbox']").forEach(elem => {
         if (elem.id && !elem.id.startsWith("edit") && !elem.id.startsWith("new") && elem.id !== "searchInput") {
             elem.addEventListener("change", () => {
@@ -865,6 +871,7 @@
             });
         }
     });
+});
 
     // ========== INICIALIZAÇÃO ==========
     window.addEventListener('load', () => {
