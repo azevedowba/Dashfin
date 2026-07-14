@@ -4,13 +4,27 @@ const provider = new firebase.auth.GoogleAuthProvider();
 
 document.getElementById('btn-login').addEventListener('click', loginComGoogle);
 
+const btnLogout = document.getElementById('btn-logout');
+if (btnLogout) {
+    btnLogout.addEventListener('click', () => {
+        auth.signOut();
+    });
+}
+
 function loginComGoogle() {
+  const erroDiv = document.getElementById('loginGateErro');
+  if (erroDiv) erroDiv.style.display = 'none';
+
   auth.signInWithPopup(provider)
     .then((result) => {
-      // Login com sucesso!
+      // Login com sucesso! O onAuthStateChanged cuida de mostrar o app.
       console.log("Usuário logado:", result.user.email);
     }).catch((error) => {
       console.error("Erro no login:", error.message);
+      if (erroDiv) {
+          erroDiv.textContent = "Não foi possível entrar. Tente novamente.";
+          erroDiv.style.display = 'block';
+      }
     });
 }
 
@@ -886,34 +900,30 @@ function loginComGoogle() {
         });
     });
 
-    // ========== AUTENTICAÇÃO ==========
+     // ========== AUTENTICAÇÃO ==========
     // Este observador gerencia o estado de autenticação e é o único ponto
-    // responsável por iniciar (ou parar) o carregamento dos dados.
+    // responsável por iniciar (ou parar) o carregamento dos dados,
+    // além de alternar entre a tela de login e o conteúdo do app.
     auth.onAuthStateChanged((user) => {
+        const loginGate = document.getElementById('loginGate');
+        const appContent = document.getElementById('appContent');
+
         if (user) {
-            // USUÁRIO LOGADO: Agora é seguro carregar os dados
+            // USUÁRIO LOGADO: esconde a tela de login e mostra o app
             console.log("Usuário autenticado:", user.email);
 
-            // Esconde o botão de login se existir
-            const btnLogin = document.getElementById('btn-login');
-            if (btnLogin) btnLogin.style.display = 'none';
+            if (loginGate) loginGate.style.display = 'none';
+            if (appContent) appContent.style.display = 'block';
 
             // Carrega filtros salvos e inicia o carregamento dos dados
             carregarFiltrosIndex();
             iniciarEscutaRealtime();
             inicializarBusca();
         } else {
-            // USUÁRIO DESLOGADO: Não carrega dados
+            // USUÁRIO DESLOGADO: mostra a tela de login e esconde o app
             console.log("Aguardando login...");
 
-            // Mostra novamente o botão de login, se existir
-            const btnLogin = document.getElementById('btn-login');
-            if (btnLogin) btnLogin.style.display = '';
-
-            // Limpa o feed e mostra aviso
-            const feed = document.getElementById("feedLancamentos");
-            if (feed) {
-                feed.innerHTML = '<div class="no-data">Por favor, faça login para visualizar seus dados.</div>';
-            }
+            if (loginGate) loginGate.style.display = 'flex';
+            if (appContent) appContent.style.display = 'none';
         }
     });

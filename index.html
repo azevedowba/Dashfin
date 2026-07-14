@@ -700,12 +700,84 @@
                 padding: 6px 12px;
             }
         }
-    </style>
+/* ========== TELA DE LOGIN ========== */
+        .login-gate {
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(135deg, var(--primary-color), var(--info-color));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .login-gate-box {
+            background: var(--card-bg);
+            padding: 40px 36px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+            text-align: center;
+            max-width: 360px;
+            width: 90%;
+        }
+
+        .login-gate-box h1 {
+            margin: 0 0 8px 0;
+            color: var(--primary-color);
+            font-size: 1.4em;
+        }
+
+        .login-gate-box p {
+            margin: 0 0 24px 0;
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .btn-login-gate {
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-login-gate:hover {
+            background: var(--info-color);
+        }
+
+        .login-gate-erro {
+            margin-top: 16px;
+            color: var(--danger-color);
+            font-size: 13px;
+            display: none;
+        }
+
+        #appContent {
+            display: none;
+        }
+
+</style>
 </head>
 <body>
 
+<div id="loginGate" class="login-gate">
+    <div class="login-gate-box">
+        <h1>Dashfin - Sistema Financeiro</h1>
+        <p>Faça login com sua conta Google para acessar seu painel financeiro.</p>
+        <button id="btn-login" class="btn-login-gate">Entrar com Google</button>
+        <div id="loginGateErro" class="login-gate-erro"></div>
+    </div>
+</div>
+
+<div id="appContent">
+
 <header>
-    <div class="logo">Dashfin - Sistema Financeiro <button id="btn-login">Entrar com Google</button></div>
+    <div class="logo">Dashfin - Sistema Financeiro</div>
+    <button id="btn-logout" class="btn-limpar-busca" style="color:white; border:1px solid rgba(255,255,255,0.4); border-radius:4px; padding:6px 12px;">Sair</button>
 
     <nav>
         <a href="index.html" class="nav-link active">Dashboard & Histórico</a>
@@ -948,7 +1020,7 @@
     </div>
 
 </div>
-
+</div><!-- fecha #appContent -->
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
