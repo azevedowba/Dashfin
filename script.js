@@ -1,3 +1,20 @@
+import { getAuth, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
+
+document.getElementById('btn-login').addEventListener('click', loginComGoogle);
+const auth = getAuth();
+const provider = new GoogleAuthProvider();
+
+function loginComGoogle() {
+  signInWithPopup(auth, provider)
+    .then((result) => {
+      // Login com sucesso!
+      console.log("Usuário logado:", result.user.email);
+      location.reload(); // Recarrega a página para carregar os dados
+    }).catch((error) => {
+      console.error("Erro no login:", error.message);
+    });
+}
+
     // ========== CONSTANTES ==========
     const CUSTOS_FIXOS = [
         "Celular", "Combustível", "Condomínio", "Conta de Agua", 
@@ -873,13 +890,38 @@
     });
 });
 
-    // ========== INICIALIZAÇÃO ==========
-    window.addEventListener('load', () => {
-        iniciarEscutaRealtime();
+// Este observador gerencia o estado de autenticação
+onAuthStateChanged(auth, (user) => {
+    if (user) {
+        // USUÁRIO LOGADO: Agora é seguro carregar os dados
+        console.log("Usuário autenticado:", user.email);
+        
+        // Esconde o botão de login se existir
+        const btnLogin = document.getElementById('btn-login');
+        if (btnLogin) btnLogin.style.display = 'none';
+
+        // Inicia o carregamento dos dados
+        iniciarEscutaRealtime(); 
         inicializarBusca();
-    });
-    
-    document.addEventListener('DOMContentLoaded', () => {
         carregarFiltrosIndex();
-        if (typeof renderizarFeedFiltrado === "function") renderizarFeedFiltrado();
-    });
+    } else {
+        // USUÁRIO DESLOGADO: Não carrega dados
+        console.log("Aguardando login...");
+        
+        // Opcional: Limpa o feed e mostra aviso
+        const feed = document.getElementById("feedLancamentos");
+        if (feed) {
+            feed.innerHTML = '<div class="no-data">Por favor, faça login para visualizar seus dados.</div>';
+        }
+    }
+});
+    // ========== INICIALIZAÇÃO ==========
+ //   window.addEventListener('load', () => {
+ //       iniciarEscutaRealtime();
+ //      inicializarBusca();
+ //   });
+ 
+//    document.addEventListener('DOMContentLoaded', () => {
+//        carregarFiltrosIndex();
+//       if (typeof renderizarFeedFiltrado === "function") renderizarFeedFiltrado();
+//    });
