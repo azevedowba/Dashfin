@@ -1,15 +1,14 @@
-import { getAuth, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
+// Usa o SDK "compat" do Firebase (o mesmo já inicializado em firebase-config.js)
+const auth = firebase.auth();
+const provider = new firebase.auth.GoogleAuthProvider();
 
 document.getElementById('btn-login').addEventListener('click', loginComGoogle);
-const auth = getAuth();
-const provider = new GoogleAuthProvider();
 
 function loginComGoogle() {
-  signInWithPopup(auth, provider)
+  auth.signInWithPopup(provider)
     .then((result) => {
       // Login com sucesso!
       console.log("Usuário logado:", result.user.email);
-      location.reload(); // Recarrega a página para carregar os dados
     }).catch((error) => {
       console.error("Erro no login:", error.message);
     });
@@ -875,53 +874,46 @@ function loginComGoogle() {
 
     // ========== EVENT LISTENERS ==========
     document.addEventListener('DOMContentLoaded', () => {
-    carregarFiltrosIndex(); // Carrega os filtros salvos
-    iniciarEscutaRealtime(); // Conecta ao Firebase
-    inicializarBusca();      // Inicia a busca
-    
-    // Adiciona os event listeners SOMENTE após o DOM carregar
-    document.querySelectorAll("select, input[type='checkbox']").forEach(elem => {
-        if (elem.id && !elem.id.startsWith("edit") && !elem.id.startsWith("new") && elem.id !== "searchInput") {
-            elem.addEventListener("change", () => {
-                salvarFiltrosIndex();
-                renderizarFeedFiltrado();
-            });
+        // Adiciona os event listeners de filtros assim que o DOM carregar
+        // (a carga de dados em si só acontece depois do login, ver onAuthStateChanged abaixo)
+        document.querySelectorAll("select, input[type='checkbox']").forEach(elem => {
+            if (elem.id && !elem.id.startsWith("edit") && !elem.id.startsWith("new") && elem.id !== "searchInput") {
+                elem.addEventListener("change", () => {
+                    salvarFiltrosIndex();
+                    renderizarFeedFiltrado();
+                });
+            }
+        });
+    });
+
+    // ========== AUTENTICAÇÃO ==========
+    // Este observador gerencia o estado de autenticação e é o único ponto
+    // responsável por iniciar (ou parar) o carregamento dos dados.
+    auth.onAuthStateChanged((user) => {
+        if (user) {
+            // USUÁRIO LOGADO: Agora é seguro carregar os dados
+            console.log("Usuário autenticado:", user.email);
+
+            // Esconde o botão de login se existir
+            const btnLogin = document.getElementById('btn-login');
+            if (btnLogin) btnLogin.style.display = 'none';
+
+            // Carrega filtros salvos e inicia o carregamento dos dados
+            carregarFiltrosIndex();
+            iniciarEscutaRealtime();
+            inicializarBusca();
+        } else {
+            // USUÁRIO DESLOGADO: Não carrega dados
+            console.log("Aguardando login...");
+
+            // Mostra novamente o botão de login, se existir
+            const btnLogin = document.getElementById('btn-login');
+            if (btnLogin) btnLogin.style.display = '';
+
+            // Limpa o feed e mostra aviso
+            const feed = document.getElementById("feedLancamentos");
+            if (feed) {
+                feed.innerHTML = '<div class="no-data">Por favor, faça login para visualizar seus dados.</div>';
+            }
         }
     });
-});
-
-// Este observador gerencia o estado de autenticação
-onAuthStateChanged(auth, (user) => {
-    if (user) {
-        // USUÁRIO LOGADO: Agora é seguro carregar os dados
-        console.log("Usuário autenticado:", user.email);
-        
-        // Esconde o botão de login se existir
-        const btnLogin = document.getElementById('btn-login');
-        if (btnLogin) btnLogin.style.display = 'none';
-
-        // Inicia o carregamento dos dados
-        iniciarEscutaRealtime(); 
-        inicializarBusca();
-        carregarFiltrosIndex();
-    } else {
-        // USUÁRIO DESLOGADO: Não carrega dados
-        console.log("Aguardando login...");
-        
-        // Opcional: Limpa o feed e mostra aviso
-        const feed = document.getElementById("feedLancamentos");
-        if (feed) {
-            feed.innerHTML = '<div class="no-data">Por favor, faça login para visualizar seus dados.</div>';
-        }
-    }
-});
-    // ========== INICIALIZAÇÃO ==========
- //   window.addEventListener('load', () => {
- //       iniciarEscutaRealtime();
- //      inicializarBusca();
- //   });
- 
-//    document.addEventListener('DOMContentLoaded', () => {
-//        carregarFiltrosIndex();
-//       if (typeof renderizarFeedFiltrado === "function") renderizarFeedFiltrado();
-//    });
