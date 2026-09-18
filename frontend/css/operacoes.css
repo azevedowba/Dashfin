@@ -1,0 +1,149 @@
+﻿
+        :root {
+            --primary-color: #1a237e;
+            --accent-color: #2196F3;
+            --success-color: #4CAF50;
+            --bg-color: #f4f6f9;
+            --card-bg: #ffffff;
+            --text-color: #333333;
+            --border-color: #e0e0e0;
+        }
+
+        body { 
+            font-family: 'Segoe UI', Arial, sans-serif; 
+            margin: 0; 
+            background-color: var(--bg-color); 
+            color: var(--text-color); 
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 15px 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        header h1 { margin: 0; font-size: 22px; }
+
+        nav {
+            display: flex;
+            gap: 15px;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            padding: 8px 16px;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+
+        nav a:hover { background-color: rgba(255,255,255,0.1); }
+        nav a.active { background-color: var(--accent-color); }
+
+        .main-layout {
+            max-width: 900px;
+            margin: 40px auto;
+            width: calc(100% - 40px);
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            border: 1px solid var(--border-color);
+        }
+
+        .card h2 { margin-top: 0; color: var(--primary-color); border-bottom: 2px solid var(--bg-color); padding-bottom: 12px; font-size: 20px; }
+        .card p { color: #666; font-size: 14px; line-height: 1.5; margin-bottom: 20px; }
+
+        textarea {
+            width: 100%;
+            height: 150px;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 13px;
+            box-sizing: border-box;
+            background-color: #fafafa;
+            resize: vertical;
+        }
+
+        .btn-importar {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+            font-size: 14px;
+            margin-top: 15px;
+            width: 100%;
+        }
+        .btn-importar:hover { opacity: 0.9; }
+        .btn-importar:disabled { background-color: #cccccc; cursor: not-allowed; }
+
+        .btn-danger-zone {
+            background-color: #d32f2f;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+            font-size: 14px;
+        }
+        .btn-danger-zone:hover { background-color: #c62828; }
+
+        /* Estilos da tabela de PrÃ©-visualizaÃ§Ã£o */
+        .preview-wrapper {
+            margin-top: 30px;
+            border-top: 2px dashed var(--border-color);
+            padding-top: 20px;
+        }
+
+        .table-preview {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            margin-bottom: 20px;
+            font-size: 13px;
+        }
+
+        .table-preview th, .table-preview td {
+            border: 1px solid var(--border-color);
+            padding: 10px;
+            text-align: left;
+        }
+
+        .table-preview th {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .row-duplicada {
+            background-color: #ffebee;
+            color: #c62828;
+        }
+
+        .row-valida {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+    

@@ -1,773 +1,17 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashfin - Dashboard</title>
-    <style>
-        :root {
-            --primary-color: #1a237e;
-            --accent-color: #2196F3;
-            --success-color: #4CAF50;
-            --danger-color: #d32f2f;
-            --warning-color: #e65100;
-            --info-color: #0d47a1;
-            --bg-color: #f4f6f9;
-            --card-bg: #ffffff;
-            --text-color: #333333;
-            --text-secondary: #666666;
-            --text-light: #777777;
-            --border-color: #e0e0e0;
-        }
-
-        * { box-sizing: border-box; }
-
-        body { 
-            font-family: 'Segoe UI', Arial, sans-serif; 
-            margin: 0; 
-            background-color: var(--bg-color); 
-            color: var(--text-color); 
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-        }
-
-        /* ========== HEADER ========== */
-        header {
-            background-color: var(--primary-color);
-            color: white;
-            padding: 15px 30px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        header .logo { 
-            font-size: 1.2em; 
-            font-weight: bold; 
-        }
-
-        nav {
-            display: flex;
-            gap: 15px;
-        }
-
-        nav a {
-            color: white;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 14px;
-            padding: 8px 16px;
-            border-radius: 4px;
-            transition: background 0.2s;
-        }
-
-        nav a:hover { background-color: rgba(255,255,255,0.1); }
-        nav a.active { background-color: var(--accent-color); }
-
-        /* ========== LAYOUT ========== */
-        .main-layout {
-            display: grid;
-            grid-template-columns: 360px 1fr;
-            gap: 20px;
-            padding: 20px;
-            max-width: 1400px;
-            margin: 0 auto;
-            width: calc(100% - 40px);
-            flex: 1;
-        }
-
-        .sidebar {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        /* ========== CARDS ========== */
-        .card {
-            background: var(--card-bg);
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            border: 1px solid var(--border-color);
-        }
-
-        .card h3 { 
-            margin: 0 0 8px 0; 
-            color: var(--primary-color); 
-            border-bottom: 2px solid var(--bg-color); 
-            padding-bottom: 8px; 
-            font-size: 16px; 
-        }
-
-        /* ========== BUSCADOR RÁPIDO ========== */
-        .search-box-container {
-            position: relative;
-        }
-
-        .search-input-wrapper {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            background: white;
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            padding: 8px 12px;
-        }
-
-        .search-input-wrapper input {
-            flex: 1;
-            border: none;
-            outline: none;
-            font-size: 14px;
-            background: transparent;
-            color: var(--text-color);
-        }
-
-        .search-input-wrapper input::placeholder {
-            color: var(--text-light);
-        }
-
-        .search-icon {
-            color: var(--text-light);
-            font-size: 16px;
-        }
-
-        .btn-limpar-busca {
-            background: none;
-            border: none;
-            color: var(--text-light);
-            cursor: pointer;
-            padding: 0;
-            font-size: 14px;
-            transition: color 0.2s;
-        }
-
-        .btn-limpar-busca:hover {
-            color: var(--danger-color);
-        }
-
-        /* ========== RESULTADO BUSCA ========== */
-        .search-results-info {
-            margin-top: 8px;
-            font-size: 12px;
-            color: var(--text-secondary);
-            display: none;
-        }
-
-        .search-results-info.ativo {
-            display: block;
-        }
-
-        /* ========== OPÇÕES DE CONCILIAÇÃO ========== */
-        .conciliacao-opcoes {
-            margin-bottom: 12px;
-            padding: 8px;
-            background-color: #f5f5f5;
-            border-radius: 6px;
-        }
-
-        .checkbox-item-conciliacao {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 12px;
-            color: var(--text-secondary);
-            cursor: pointer;
-        }
-
-        .checkbox-item-conciliacao input {
-            cursor: pointer;
-            width: 14px;
-            height: 14px;
-        }
-
-        /* ========== FILTROS ========== */
-        .filter-group { 
-            margin-bottom: 12px; 
-        }
-
-        .filter-group label {
-            display: block;
-            font-weight: 600;
-            margin-bottom: 6px;
-            font-size: 13px;
-            color: var(--text-secondary);
-        }
-
-        .checkbox-group {
-            display: flex;
-            gap: 10px;
-            margin-top: 5px;
-            flex-wrap: wrap;
-        }
-
-        .checkbox-item {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-
-        .checkbox-item input {
-            cursor: pointer;
-            width: 16px;
-            height: 16px;
-        }
-
-        /* ========== INPUTS ========== */
-        select, 
-        input[type="number"], 
-        input[type="text"], 
-        input[type="date"] {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            font-size: 14px;
-            background-color: #fafafa;
-            font-family: inherit;
-        }
-
-        select:focus,
-        input:focus {
-            outline: none;
-            border-color: var(--accent-color);
-            background-color: white;
-        }
-
-        /* ========== BOTÕES ========== */
-        .btn-salvar-ajuste {
-            width: 100%;
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            padding: 10px;
-            border-radius: 6px;
-            font-weight: bold;
-            cursor: pointer;
-            margin-top: 5px;
-            transition: background 0.2s;
-        }
-
-        .btn-salvar-ajuste:hover { 
-            background-color: #0d1b60; 
-        }
-
-        .btn-adicionar-discreto {
-            background-color: #37474f;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 6px;
-            font-weight: 600;
-            font-size: 14px;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            transition: background 0.2s;
-            margin-bottom: 5px;
-        }
-
-        .btn-adicionar-discreto:hover { 
-            background-color: #263238; 
-        }
-
-        .btn-acao-deletar {
-            background: none;
-            border: none;
-            padding: 6px 10px;
-            cursor: pointer;
-            border-radius: 4px;
-            color: var(--danger-color);
-            font-size: 13px;
-            font-weight: 600;
-            transition: background 0.2s;
-        }
-
-        .btn-acao-deletar:hover { 
-            background-color: #ffebee; 
-        }
-
-        .btn-inline-salvar {
-            background-color: var(--success-color);
-            color: white;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 4px;
-            font-size: 13px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        .btn-inline-salvar:hover { 
-            background-color: #388e3c; 
-        }
-
-        .btn-inline-cancelar {
-            background-color: #e0e0e0;
-            color: #333;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 4px;
-            font-size: 13px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        .btn-inline-cancelar:hover { 
-            background-color: #d5d5d5; 
-        }
-
-        /* ========== RESUMO FILTRO ========== */
-        .resumo-filtro {
-            display: flex;
-            justify-content: space-between;
-            padding: 5px 0 0 0;
-            font-weight: bold;
-            font-size: 15px;
-        }
-
-        .text-despesa { color: var(--danger-color); }
-        .text-receita { color: var(--success-color); }
-        .text-neutro { color: var(--text-secondary); }
-
-        .btn-limpar-filtros {
-            background: none;
-            border: none;
-            color: var(--text-light);
-            cursor: pointer;
-            font-size: 12px;
-            text-decoration: underline;
-            padding: 0;
-            font-family: inherit;
-            vertical-align: middle;
-            margin-left: 15px;
-            transition: color 0.2s;
-        }
-
-        .btn-limpar-filtros:hover {
-            color: var(--text-secondary);
-        }
-
-        /* ========== CARDS DE SALDO ========== */
-        .grid-cards-contas {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-
-        .card-conta-stat {
-            padding: 15px;
-            border-radius: 10px;
-            text-align: center;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.08);
-            border: 1px solid rgba(0,0,0,0.1);
-            font-weight: bold;
-        }
-
-        .bg-banrisul { background: linear-gradient(135deg, #bbdefb, #90caf9); color: var(--info-color); }
-        .bg-nubank { background: linear-gradient(135deg, #e1bee7, #ce93d8); color: #4a148c; }
-        .bg-valeref { background: linear-gradient(135deg, #ffe0b2, #ffcc80); color: var(--warning-color); }
-        .bg-valealim { background: linear-gradient(135deg, #c8e6c9, #a5d6a7); color: #1b5e20; }
-
-        .card-conta-stat .valor-saldo { 
-            font-size: 20px; 
-            margin-bottom: 4px; 
-        }
-
-        .card-conta-stat .nome-conta { 
-            font-size: 12px; 
-            opacity: 0.9; 
-        }
-
-        /* ========== FEED ========== */
-        .feed-container {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .feed-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .feed-header h2 { 
-            margin: 0; 
-            font-size: 18px; 
-            color: var(--primary-color); 
-        }
-
-        .contador-itens {
-            font-size: 13px; 
-            color: var(--text-secondary); 
-            font-weight: bold;
-        }
-
-        .no-data { 
-            text-align: center; 
-            color: #999; 
-            padding: 20px; 
-            font-style: italic; 
-        }
-
-        /* ========== AGRUPAMENTO POR DATA ========== */
-        .agrupamento-data {
-            margin-bottom: 20px;
-        }
-
-        .header-data {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 15px;
-            background-color: #f5f5f5;
-            border-radius: 6px;
-            margin-bottom: 8px;
-            border-left: 4px solid var(--primary-color);
-        }
-
-        .header-data-titulo {
-            font-weight: 700;
-            font-size: 14px;
-            color: var(--primary-color);
-        }
-
-        .header-data-saldo {
-            font-size: 13px;
-            font-weight: 600;
-            padding: 4px 8px;
-            border-radius: 4px;
-            background-color: white;
-            border: 1px solid var(--border-color);
-            min-width: 120px;
-            text-align: right;
-        }
-
-        .header-data-saldo.positivo {
-            color: var(--success-color);
-        }
-
-        .header-data-saldo.negativo {
-            color: var(--danger-color);
-        }
-
-        .header-data-saldo.neutro {
-            color: var(--text-secondary);
-        }
-
-        .items-por-data {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        /* ========== ITENS DE LANÇAMENTO ========== */
-        .lancamento-item {
-            background: var(--card-bg);
-            border-left: 6px solid #ccc;
-            padding: 12px 20px;
-            border-radius: 0 8px 8px 0;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border: 1px solid var(--border-color);
-            transition: transform 0.2s;
-        }
-
-        .lancamento-item:hover { transform: translateX(4px); }
-
-        .lancamento-item.item-despesa { border-left-color: #ef5350; }
-        .lancamento-item.item-receita { border-left-color: #66bb6a; }
-        .lancamento-item.item-transferencia { border-left-color: #9e9e9e; }
-
-        .lancamento-item.destaque-busca {
-            background-color: #fffde7;
-            border-left-width: 8px;
-        }
-
-        .item-bloco-esquerdo { 
-            display: flex; 
-            align-items: center; 
-            gap: 16px; 
-            flex: 1; 
-        }
-
-        .item-info-texto { 
-            display: flex; 
-            flex-direction: column; 
-            gap: 4px; 
-            width: 100%; 
-        }
-
-        .item-data-tag { 
-            font-size: 12px; 
-            color: var(--text-light); 
-            font-weight: bold; 
-            display: flex; 
-            align-items: center; 
-            gap: 8px; 
-            flex-wrap: wrap; 
-        }
-
-        .tag-status { 
-            font-size: 10px; 
-            padding: 2px 6px; 
-            border-radius: 4px; 
-            font-weight: bold; 
-            cursor: pointer;
-            border: 1px solid;
-            transition: background 0.2s;
-        }
-
-        .status-pago { 
-            background-color: #e8f5e9; 
-            color: #2e7d32; 
-            border-color: #c8e6c9; 
-        }
-
-        .status-previsao { 
-            background-color: #fff3e0; 
-            color: var(--warning-color); 
-            border-color: #ffe0b2; 
-        }
-
-        .tag-conta { 
-            background: #e3f2fd; 
-            color: var(--info-color); 
-            padding: 2px 8px; 
-            border-radius: 4px; 
-            font-weight: bold; 
-            font-size: 11px; 
-        }
-
-        .item-descricao { 
-            font-weight: 600; 
-            font-size: 15px; 
-            color: #222; 
-        }
-
-        .item-descricao .highlight {
-            background-color: #ffd700;
-            padding: 0 2px;
-            border-radius: 2px;
-            font-weight: 700;
-        }
-
-        .item-meta { 
-            display: flex; 
-            gap: 10px; 
-            font-size: 12px; 
-            align-items: center; 
-            flex-wrap: wrap; 
-            color: var(--text-secondary); 
-        }
-
-        .item-bloco-direito { 
-            display: flex; 
-            align-items: center; 
-            gap: 24px; 
-        }
-
-        .item-valor { 
-            font-size: 16px; 
-            font-weight: bold; 
-            text-align: right; 
-            min-width: 110px; 
-        }
-
-        /* ========== EDIÇÃO INLINE ========== */
-        .em-edicao-inline {
-            background-color: #ffffff !important;
-            border: 2px dashed #37474f !important;
-            padding: 15px !important;
-            border-radius: 8px !important;
-            margin-bottom: 15px;
-            flex-direction: column !important;
-            align-items: stretch !important;
-            cursor: default !important;
-            transform: none !important;
-        }
-
-        .edit-inline-container {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            width: 100%;
-        }
-
-        .edit-inline-row-top {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 8px;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        .edit-inline-title { 
-            font-weight: bold; 
-            color: #37474f; 
-            font-size: 14px; 
-        }
-
-        .edit-inline-group { 
-            display: flex; 
-            gap: 12px; 
-            align-items: center; 
-            font-size: 13px; 
-            font-weight: 600; 
-        }
-
-        .edit-inline-group label { 
-            display: flex; 
-            align-items: center; 
-            gap: 4px; 
-            cursor: pointer; 
-        }
-
-        .edit-inline-actions { 
-            display: flex; 
-            gap: 8px; 
-        }
-
-        .input-inline-style, 
-        .select-inline-edit-style {
-            padding: 6px 10px;
-            font-size: 13px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            background: #fafafa;
-            font-family: inherit;
-        }
-
-        .edit-inline-row-inputs { 
-            display: flex; 
-            gap: 10px; 
-            flex-wrap: wrap; 
-            align-items: center; 
-        }
-
-        /* ========== RESPONSIVE ========== */
-        @media (max-width: 1200px) {
-            .grid-cards-contas {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-
-        @media (max-width: 768px) {
-            .main-layout {
-                grid-template-columns: 1fr;
-            }
-
-            .grid-cards-contas {
-                grid-template-columns: repeat(2, 1fr);
-            }
-
-            .form-row {
-                grid-template-columns: 1fr !important;
-            }
-
-            .item-bloco-direito {
-                flex-direction: column;
-                gap: 8px;
-                align-items: flex-start;
-            }
-
-            .header-data {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 8px;
-            }
-
-            nav {
-                gap: 8px;
-            }
-
-            nav a {
-                font-size: 12px;
-                padding: 6px 12px;
-            }
-        }
-/* ========== TELA DE LOGIN ========== */
-        .login-gate {
-            position: fixed;
-            inset: 0;
-            background: linear-gradient(135deg, var(--primary-color), var(--info-color));
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 9999;
-        }
-
-        .login-gate-box {
-            background: var(--card-bg);
-            padding: 40px 36px;
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.25);
-            text-align: center;
-            max-width: 360px;
-            width: 90%;
-        }
-
-        .login-gate-box h1 {
-            margin: 0 0 8px 0;
-            color: var(--primary-color);
-            font-size: 1.4em;
-        }
-
-        .login-gate-box p {
-            margin: 0 0 24px 0;
-            color: var(--text-secondary);
-            font-size: 14px;
-        }
-
-        .btn-login-gate {
-            background: var(--accent-color);
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 6px;
-            font-size: 15px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        .btn-login-gate:hover {
-            background: var(--info-color);
-        }
-
-        .login-gate-erro {
-            margin-top: 16px;
-            color: var(--danger-color);
-            font-size: 13px;
-            display: none;
-        }
-
-        #appContent {
-            display: none;
-        }
-
-</style>
+    <link rel="stylesheet" href="css/index.css">
 </head>
 <body>
 
 <div id="loginGate" class="login-gate">
     <div class="login-gate-box">
         <h1>Dashfin - Sistema Financeiro</h1>
-        <p>Faça login com sua conta Google para acessar seu painel financeiro.</p>
+        <p>FaÃ§a login com sua conta Google para acessar seu painel financeiro.</p>
         <button id="btn-login" class="btn-login-gate">Entrar com Google</button>
         <div id="loginGateErro" class="login-gate-erro"></div>
     </div>
@@ -780,9 +24,9 @@
     <button id="btn-logout" class="btn-limpar-busca" style="color:white; border:1px solid rgba(255,255,255,0.4); border-radius:4px; padding:6px 12px;">Sair</button>
 
     <nav>
-        <a href="index.html" class="nav-link active">Dashboard & Histórico</a>
-        <a href="graficos.html" class="nav-link">Análise & Gráficos</a>
-        <a href="operacoes.html" class="nav-link">Lançamentos & Importação</a>
+        <a href="index.html" class="nav-link active">Dashboard & HistÃ³rico</a>
+        <a href="graficos.html" class="nav-link">AnÃ¡lise & GrÃ¡ficos</a>
+        <a href="operacoes.html" class="nav-link">LanÃ§amentos & ImportaÃ§Ã£o</a>
     </nav>
 </header>
 
@@ -791,44 +35,44 @@
     <div class="sidebar">
         
         <div class="card search-box-container">
-            <h3 style="margin-bottom: 12px;">🔍 Busca Rápida</h3>
+            <h3 style="margin-bottom: 12px;">ðŸ” Busca RÃ¡pida</h3>
             <div class="search-input-wrapper">
-                <span class="search-icon">🔎</span>
+                <span class="search-icon">ðŸ”Ž</span>
                 <input 
                     type="text" 
                     id="searchInput" 
-                    placeholder="Buscar por descrição, categoria..."
+                    placeholder="Buscar por descriÃ§Ã£o, categoria..."
                     autocomplete="off"
                 >
-                <button class="btn-limpar-busca" id="btnLimparBusca" onclick="limparBusca()" style="display: none;">✕</button>
+                <button class="btn-limpar-busca" id="btnLimparBusca" onclick="limparBusca()" style="display: none;">âœ•</button>
             </div>
             <div class="search-results-info" id="searchResultsInfo"></div>
         </div>
 
         <div class="card">
-            <h3 style="margin-bottom: 12px;">⚙️ Conciliação Diária</h3>
+            <h3 style="margin-bottom: 12px;">âš™ï¸ ConciliaÃ§Ã£o DiÃ¡ria</h3>
             <div class="conciliacao-opcoes">
                 <label class="checkbox-item-conciliacao">
                     <input type="checkbox" id="incluirSaldoAnterior" checked>
-                    Incluir saldo do mês anterior
+                    Incluir saldo do mÃªs anterior
                 </label>
             </div>
         </div>
 
         <div class="card">
             <div style="display: flex; align-items: center; justify-content: space-between;">
-                <h3 style="margin: 0;">Filtros de Visualização</h3>
+                <h3 style="margin: 0;">Filtros de VisualizaÃ§Ã£o</h3>
                 <button class="btn-limpar-filtros" onclick="limparFiltrosIndex()">Limpar Filtros</button>
             </div>
             
             <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 8px;">
                 <div class="filter-group">
-                    <label for="filtroMes">Mês</label>
+                    <label for="filtroMes">MÃªs</label>
                     <select id="filtroMes">
                         <option value="TODOS">Todos os Meses</option>
                         <option value="JANEIRO">Janeiro</option>
                         <option value="FEVEREIRO">Fevereiro</option>
-                        <option value="MARÇO">Março</option>
+                        <option value="MARÃ‡O">MarÃ§o</option>
                         <option value="ABRIL">Abril</option>
                         <option value="MAIO">Maio</option>
                         <option value="JUNHO">Junho</option>
@@ -849,7 +93,7 @@
             </div>
 
             <div class="filter-group">
-                <label>Tipo de Movimentação</label>
+                <label>Tipo de MovimentaÃ§Ã£o</label>
                 <div class="checkbox-group">
                     <label class="checkbox-item">
                         <input type="checkbox" id="chkMovReceita" checked> Receita
@@ -858,19 +102,19 @@
                         <input type="checkbox" id="chkMovDespesa" checked> Despesa
                     </label>
                     <label class="checkbox-item">
-                        <input type="checkbox" id="chkMovTransferencia" checked> Transferência
+                        <input type="checkbox" id="chkMovTransferencia" checked> TransferÃªncia
                     </label>
                 </div>
             </div>
 
             <div class="filter-group">
-                <label>Status do Lançamento</label>
+                <label>Status do LanÃ§amento</label>
                 <div class="checkbox-group">
                     <label class="checkbox-item">
                         <input type="checkbox" id="chkStatusPago" checked> Pago
                     </label>
                     <label class="checkbox-item">
-                        <input type="checkbox" id="chkStatusPrevisao"> Previsão
+                        <input type="checkbox" id="chkStatusPrevisao"> PrevisÃ£o
                     </label>
                 </div>
             </div>
@@ -880,11 +124,11 @@
                 <select id="filtroConta">
                     <option value="TODAS">Todas as Contas</option>
                     <option value="Banrisul">Banrisul</option>
-                    <option value="Cartão Nubank">Cartão Nubank</option>
-                    <option value="Cartão XP">Cartão XP</option>
+                    <option value="CartÃ£o Nubank">CartÃ£o Nubank</option>
+                    <option value="CartÃ£o XP">CartÃ£o XP</option>
                     <option value="Carteira">Carteira</option>
-                    <option value="Vale Alimentação">Vale Alimentação</option>
-                    <option value="Vale Refeição">Vale Refeição</option>
+                    <option value="Vale AlimentaÃ§Ã£o">Vale AlimentaÃ§Ã£o</option>
+                    <option value="Vale RefeiÃ§Ã£o">Vale RefeiÃ§Ã£o</option>
                 </select>
             </div>
 
@@ -894,26 +138,26 @@
                     <option value="TODAS">Todas as Categorias</option>
                     <option value="Ajuda de custos">Ajuda de custos</option>
                     <option value="Barba e Cabelo">Barba e Cabelo</option>
-                    <option value="Benefício Vale Alimentação">Benefício Vale Alimentação</option>
-                    <option value="Benefício Vale Refeição">Benefício Vale Refeição</option>
+                    <option value="BenefÃ­cio Vale AlimentaÃ§Ã£o">BenefÃ­cio Vale AlimentaÃ§Ã£o</option>
+                    <option value="BenefÃ­cio Vale RefeiÃ§Ã£o">BenefÃ­cio Vale RefeiÃ§Ã£o</option>
                     <option value="Bonus PPR">Bonus PPR</option>
                     <option value="Cafezinho">Cafezinho</option>
                     <option value="Carro">Carro</option>
                     <option value="Celular">Celular</option>
-                    <option value="Combustível">Combustível</option>
-                    <option value="Condomínio">Condomínio</option>
+                    <option value="CombustÃ­vel">CombustÃ­vel</option>
+                    <option value="CondomÃ­nio">CondomÃ­nio</option>
                     <option value="Conta de Agua">Conta de Agua</option>
                     <option value="Conta de Luz">Conta de Luz</option>
                     <option value="Creche">Creche</option>
                     <option value="Dentista">Dentista</option>
-                    <option value="Décimo terceiro Salário">Décimo terceiro Salário</option>
+                    <option value="DÃ©cimo terceiro SalÃ¡rio">DÃ©cimo terceiro SalÃ¡rio</option>
                     <option value="Estacionamento">Estacionamento</option>
-                    <option value="Farmácia">Farmácia</option>
+                    <option value="FarmÃ¡cia">FarmÃ¡cia</option>
                     <option value="Faxina">Faxina</option>
                     <option value="Feira">Feira</option>
                     <option value="Financiamento Casa">Financiamento Casa</option>
-                    <option value="Férias">Férias</option>
-                    <option value="Gás">Gás</option>
+                    <option value="FÃ©rias">FÃ©rias</option>
+                    <option value="GÃ¡s">GÃ¡s</option>
                     <option value="Gastos com Cursos">Gastos com Cursos</option>
                     <option value="Gastos com Jogos ou PC">Gastos com Livros</option>
                     <option value="Gastos Pessoais">Gastos Pessoais</option>
@@ -922,37 +166,37 @@
                     <option value="IPVA">IPVA</option>
                     <option value="IRPF">IRPF</option>
                     <option value="Lazer">Lazer</option>
-                    <option value="Materiais de Construção">Materiais de Construção</option>
+                    <option value="Materiais de ConstruÃ§Ã£o">Materiais de ConstruÃ§Ã£o</option>
                     <option value="Material de Ferragem ou Ferramentas">Material de Ferragem ou Ferramentas</option>
-                    <option value="Médico">Médico</option>
-                    <option value="Móveis">Móveis</option>
+                    <option value="MÃ©dico">MÃ©dico</option>
+                    <option value="MÃ³veis">MÃ³veis</option>
                     <option value="Padaria">Padaria</option>
-                    <option value="Pedágio">Pedágio</option>
+                    <option value="PedÃ¡gio">PedÃ¡gio</option>
                     <option value="Pet">Pet</option>
                     <option value="Pilates">Pilates</option>
-                    <option value="Prêmio Receita Certa">Prêmio Receita Certa</option>
+                    <option value="PrÃªmio Receita Certa">PrÃªmio Receita Certa</option>
                     <option value="Presentes">Presentes</option>
                     <option value="Prioridades Financeiras (15%)">Prioridades Financeiras (15%)</option>
                     <option value="Reforma da Casa">Reforma da Casa</option>
                     <option value="Restaurante">Restaurante</option>
-                    <option value="Salário">Salário</option>
+                    <option value="SalÃ¡rio">SalÃ¡rio</option>
                     <option value="Seguro da Casa">Seguro da Casa</option>
                     <option value="Seguro do Carro">Seguro do Carro</option>
                     <option value="Streamings">Streamings</option>
                     <option value="Supermercado">Supermercado</option>
-                    <option value="Taxas do Cartório">Taxas do Cartório</option>
+                    <option value="Taxas do CartÃ³rio">Taxas do CartÃ³rio</option>
                     <option value="Taxi/Uber">Taxi/Uber</option>
                     <option value="Terapeuta">Terapeuta</option>
-                    <option value="Transferência">Transferência</option>
-                    <option value="Utensílios para casa">Utensílios para casa</option>
-                    <option value="Vestuário">Vestuário</option>
+                    <option value="TransferÃªncia">TransferÃªncia</option>
+                    <option value="UtensÃ­lios para casa">UtensÃ­lios para casa</option>
+                    <option value="VestuÃ¡rio">VestuÃ¡rio</option>
                     <option value="Viagens">Viagens</option>
                 </select>
             </div>
 
             <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 10px 0;">
             <div class="resumo-filtro">
-                <span>Resultado do Período:</span>
+                <span>Resultado do PerÃ­odo:</span>
                 <span id="txtTotalFiltrado">R$ 0,00</span>
             </div>
         </div>
@@ -1006,11 +250,11 @@
         </div>
 
         <div style="display: flex; justify-content: flex-start;">
-            <button class="btn-adicionar-discreto" onclick="criarLinhaNovoLancamentoInline()">➕ Adicionar Lançamento</button>
+            <button class="btn-adicionar-discreto" onclick="criarLinhaNovoLancamentoInline()">âž• Adicionar LanÃ§amento</button>
         </div>
 
         <div class="feed-header">
-            <h2>Histórico de Gastos e Receitas</h2>
+            <h2>HistÃ³rico de Gastos e Receitas</h2>
             <span id="contadorItens" class="contador-itens">Conectando...</span>
         </div>
         
@@ -1024,7 +268,11 @@
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js"></script>
-<script src="script.js"></script>   
+<script src="js/firebase-config.js"></script>
+<script src="js/app-constants.js"></script>
+<script src="js/app-auth.js"></script>
+<script src="js/app-dashboard.js"></script>
+<script src="script.js"></script>
 </body>
 </html> 
+

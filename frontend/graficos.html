@@ -1,177 +1,19 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashfin - Análise & Gráficos</title>
-    <style>
-        :root {
-            --primary-color: #1a237e;
-            --accent-color: #2196F3;
-            --success-color: #4CAF50;
-            --danger-color: #ef5350;
-            --bg-color: #f4f6f9;
-            --card-bg: #ffffff;
-            --text-color: #333333;
-            --border-color: #e0e0e0;
-        }
-
-        body { 
-            font-family: 'Segoe UI', Arial, sans-serif; 
-            margin: 0; 
-            background-color: var(--bg-color); 
-            color: var(--text-color); 
-        }
-
-        header {
-            background-color: var(--primary-color);
-            color: white;
-            padding: 15px 30px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        header .logo { font-size: 1.2em; font-weight: bold; }
-
-        nav { display: flex; gap: 15px; }
-        nav a {
-            color: white;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 14px;
-            padding: 8px 16px;
-            border-radius: 4px;
-            transition: background 0.2s;
-        }
-        nav a:hover { background-color: rgba(255,255,255,0.1); }
-        nav a.active { background-color: var(--accent-color); }
-
-        .container {
-            max-width: 1200px;
-            margin: 30px auto;
-            padding: 0 20px;
-        }
-
-        .row {
-            display: flex;
-            flex-direction: column;
-            gap: 25px;
-        }
-
-        .card-grafico {
-            background: var(--card-bg);
-            border-radius: 8px;
-            padding: 25px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            border: 1px solid var(--border-color);
-        }
-
-        .card-grafico h3 {
-            margin-top: 0;
-            color: var(--primary-color);
-            font-size: 18px;
-            border-bottom: 2px solid var(--bg-color);
-            padding-bottom: 10px;
-            margin-bottom: 20px;
-        }
-
-        .card-header-flex {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 2px solid var(--bg-color);
-            padding-bottom: 10px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        .card-header-flex h3 {
-            margin: 0;
-            border-bottom: none;
-            padding-bottom: 0;
-        }
-
-        .canvas-container {
-            position: relative;
-            width: 100%;
-            height: 400px;
-        }
-        
-        .canvas-container-vertical {
-            position: relative;
-            width: 100%;
-            min-height: 550px;
-        }
-
-        .filter-section {
-            margin-bottom: 20px;
-            display: flex;
-            gap: 25px;
-            align-items: center;
-            background: var(--card-bg);
-            padding: 15px 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-            border: 1px solid var(--border-color);
-            flex-wrap: wrap;
-        }
-
-        .filter-group {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .filter-group label {
-            font-weight: bold;
-            font-size: 14px;
-            color: #555;
-        }
-
-        .filter-group select {
-            padding: 8px 12px;
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            font-size: 14px;
-            background-color: #fff;
-            min-width: 160px;
-            cursor: pointer;
-        }
-
-        .checkbox-group {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .checkbox-item {
-            font-size: 14px;
-            font-weight: 600;
-            color: #555;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            cursor: pointer;
-        }
-
-        .checkbox-item input {
-            cursor: pointer;
-            width: 16px;
-            height: 16px;
-        }
-    </style>
+    <title>Dashfin - AnÃ¡lise & GrÃ¡ficos</title>
+    <link rel="stylesheet" href="css/graficos.css">
 </head>
 <body>
 
 <header>
     <div class="logo">Dashfin - Sistema Financeiro</div>
     <nav>
-        <a href="index.html" class="nav-link">Dashboard & Histórico</a>
-        <a href="graficos.html" class="nav-link active">Análise & Gráficos</a>
-        <a href="operacoes.html" class="nav-link">Lançamentos & Importação</a>
+        <a href="index.html" class="nav-link">Dashboard & HistÃ³rico</a>
+        <a href="graficos.html" class="nav-link active">AnÃ¡lise & GrÃ¡ficos</a>
+        <a href="operacoes.html" class="nav-link">LanÃ§amentos & ImportaÃ§Ã£o</a>
     </nav>
 </header>
 
@@ -192,11 +34,11 @@
             <select id="selectContaGraficos" onchange="processarDadosGraficos()">
                 <option value="TODAS">Todas as Contas</option>
                 <option value="Banrisul">Banrisul</option>
-                <option value="Cartão Nubank">Cartão Nubank</option>
-                <option value="Cartão XP">Cartão XP</option>
+                <option value="CartÃ£o Nubank">CartÃ£o Nubank</option>
+                <option value="CartÃ£o XP">CartÃ£o XP</option>
                 <option value="Carteira">Carteira</option>
-                <option value="Vale Alimentação">Vale Alimentação</option>
-                <option value="Vale Refeição">Vale Refeição</option>
+                <option value="Vale AlimentaÃ§Ã£o">Vale AlimentaÃ§Ã£o</option>
+                <option value="Vale RefeiÃ§Ã£o">Vale RefeiÃ§Ã£o</option>
             </select>
         </div>
 
@@ -206,7 +48,7 @@
                 <input type="checkbox" id="chkStatusPago" checked onchange="processarDadosGraficos()"> Pago
             </label>
             <label class="checkbox-item">
-                <input type="checkbox" id="chkStatusPrevisao" checked onchange="processarDadosGraficos()"> Previsão
+                <input type="checkbox" id="chkStatusPrevisao" checked onchange="processarDadosGraficos()"> PrevisÃ£o
             </label>
         </div>
 
@@ -216,7 +58,7 @@
     <div class="row">
         
         <div class="card-grafico">
-            <h3>Comparativo Mensal: Receitas × Despesas × Resultado Líquido</h3>
+            <h3>Comparativo Mensal: Receitas Ã— Despesas Ã— Resultado LÃ­quido</h3>
             <div class="canvas-container">
                 <canvas id="chartMensal"></canvas>
             </div>
@@ -231,14 +73,14 @@
 
         <div class="card-grafico">
             <div class="card-header-flex">
-                <h3>Despesas por Categoria no Mês</h3>
+                <h3>Despesas por Categoria no MÃªs</h3>
                 <div class="filter-group">
-                    <label for="selectMesGraficos">Mês:</label>
+                    <label for="selectMesGraficos">MÃªs:</label>
                     <select id="selectMesGraficos" onchange="processarDadosGraficos()">
                         <option value="TODOS">Todos os Meses</option>
                         <option value="JANEIRO">Janeiro</option>
                         <option value="FEVEREIRO">Fevereiro</option>
-                        <option value="MARÇO">Março</option>
+                        <option value="MARÃ‡O">MarÃ§o</option>
                         <option value="ABRIL">Abril</option>
                         <option value="MAIO">Maio</option>
                         <option value="JUNHO">Junho</option>
@@ -270,7 +112,7 @@
     let instanceChartRanking = null;
     let instanceChartAlfabetic = null;
 
-    const mesesNomes = ["JANEIRO","FEVEREIRO","MARÇO","ABRIL","MAIO","JUNHO","JULHO","AGOSTO","SETEMBRO","OUTUBRO","NOVEMBRO","DEZEMBRO"];
+    const mesesNomes = ["JANEIRO","FEVEREIRO","MARÃ‡O","ABRIL","MAIO","JUNHO","JULHO","AGOSTO","SETEMBRO","OUTUBRO","NOVEMBRO","DEZEMBRO"];
 
     function gerarCorPorString(str) {
         let hash = 0;
@@ -341,8 +183,8 @@
             const statusNormalizado = (item.status || "").trim().toLowerCase();
             
             if (statusNormalizado === "pago" && !chkPago) return;
-            if ((statusNormalizado === "previsão" || statusNormalizado === "previsao") && !chkPrevisao) return;
-            if (statusNormalizado !== "pago" && statusNormalizado !== "previsão" && statusNormalizado !== "previsao" && !chkPago) return;
+            if ((statusNormalizado === "previsÃ£o" || statusNormalizado === "previsao") && !chkPrevisao) return;
+            if (statusNormalizado !== "pago" && statusNormalizado !== "previsÃ£o" && statusNormalizado !== "previsao" && !chkPago) return;
 
             const anoDoItem = item.data && item.data.includes("/") ? item.data.split("/")[2] : "";
             if (anoFiltro !== "TODOS" && anoDoItem !== anoFiltro) return;
@@ -359,13 +201,13 @@
                     templatesReceitas[mesIndex] += valor;
                 } else if (mov === "despesa") {
                     templatesDespesas[mesIndex] += valor;
-                } else if ((mov === "transferência" || mov === "transferencia") && contaFiltro !== "TODAS") {
+                } else if ((mov === "transferÃªncia" || mov === "transferencia") && contaFiltro !== "TODAS") {
                     if (item.contaOrigem === contaFiltro) templatesDespesas[mesIndex] += valor;
                     if (item.contaDestino === contaFiltro) templatesReceitas[mesIndex] += valor;
                 }
             }
 
-            if (mov === "despesa" || (mov === "transferência" && contaFiltro !== "TODAS" && item.contaOrigem === contaFiltro)) {
+            if (mov === "despesa" || (mov === "transferÃªncia" && contaFiltro !== "TODAS" && item.contaOrigem === contaFiltro)) {
                 const categoria = item.categoriaOriginal || "Sem Categoria";
                 
                 rankingCategoriasGeral[categoria] = (rankingCategoriasGeral[categoria] || 0) + valor;
@@ -404,7 +246,7 @@
                 datasets: [
                     { label: 'Receitas (R$)', data: receitas, backgroundColor: '#4CAF50', borderRadius: 4 },
                     { label: 'Despesas (R$)', data: despesas, backgroundColor: '#ef5350', borderRadius: 4 },
-                    { label: 'Resultado Líquido (R$)', data: resultados, backgroundColor: '#2196F3', borderRadius: 4, borderColor: '#1565C0', borderWidth: 1 }
+                    { label: 'Resultado LÃ­quido (R$)', data: resultados, backgroundColor: '#2196F3', borderRadius: 4, borderColor: '#1565C0', borderWidth: 1 }
                 ]
             },
             options: {
@@ -490,7 +332,7 @@
         if (instanceChartAlfabetic) instanceChartAlfabetic.destroy();
 
         if (labels.length === 0) {
-            labels = ["Nenhum dado no período"];
+            labels = ["Nenhum dado no perÃ­odo"];
             valores = [0];
         }
 
