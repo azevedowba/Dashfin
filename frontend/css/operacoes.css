@@ -20,6 +20,9 @@
         }
 
         .main-header {
+            position: sticky;
+            top: 0;
+            z-index: 20;
             background: linear-gradient(135deg, var(--primary-color), #1e3a8a);
             color: white;
             padding: 14px 28px;
@@ -81,24 +84,29 @@
 
         .header-actions {
             display: flex;
+            align-items: center;
             justify-content: flex-end;
+            justify-self: end;
         }
 
         .btn-header-logout {
             border: 1px solid rgba(255,255,255,0.35);
-            background: rgba(255,255,255,0.07);
+            background: rgba(255,255,255,0.08);
             color: white;
             border-radius: 999px;
-            padding: 8px 16px;
+            padding: 9px 18px;
             font-size: 13px;
             font-weight: 700;
+            letter-spacing: 0.02em;
             cursor: pointer;
-            transition: background 0.2s ease, transform 0.2s ease;
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.18);
+            transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
         }
 
         .btn-header-logout:hover {
-            background: rgba(255,255,255,0.15);
+            background: rgba(255,255,255,0.16);
             transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(15, 23, 42, 0.22);
         }
 
         .main-layout {
@@ -197,5 +205,37 @@
         .row-valida {
             background-color: #e8f5e9;
             color: #2e7d32;
+        }
+
+        @media (max-width: 768px) {
+            .main-header {
+                grid-template-columns: 1fr;
+                justify-items: center;
+                text-align: center;
+                padding: 14px 16px;
+            }
+
+            .main-layout {
+                width: calc(100% - 24px);
+                margin: 24px auto;
+            }
+
+            .card {
+                padding: 20px 16px;
+            }
+
+            nav {
+                gap: 8px;
+                justify-content: center;
+            }
+
+            nav a {
+                font-size: 12px;
+                padding: 6px 12px;
+            }
+
+            .header-actions {
+                justify-self: center;
+            }
         }
     
