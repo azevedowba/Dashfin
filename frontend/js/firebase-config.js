@@ -8,6 +8,20 @@ const firebaseConfig = {
   appId: "1:1062749351420:web:c64dfe80d88d12723b9679"
 };
 
-// Inicializa o Firebase globalmente
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
+window.DASHFIN = window.DASHFIN || {};
+window.DASHFIN.firebaseConfig = firebaseConfig;
+
+if (typeof firebase === "undefined") {
+  console.error("Firebase SDK não carregado. Verifique a ordem dos scripts na página.");
+}
+
+const db = (typeof firebase !== "undefined" && firebase.firestore)
+  ? firebase.apps.length ? firebase.firestore() : firebase.initializeApp(firebaseConfig) && firebase.firestore()
+  : null;
+
+window.db = db;
+window.DASHFIN.db = db;
+
+if (!db) {
+  console.error("Não foi possível inicializar o Firestore. O Firebase SDK não carregou corretamente.");
+}
