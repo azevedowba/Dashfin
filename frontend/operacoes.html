@@ -31,6 +31,15 @@
 
 <div class="main-layout">
 
+    <!-- Operation banner: mostra progresso e resultado de ações pesadas como import e limpeza -->
+    <div id="operationBanner" class="operation-banner" role="status" aria-live="polite">
+        <div class="operation-banner-inner">
+            <span class="banner-spinner" aria-hidden="true"></span>
+            <span id="operationBannerText">Operação em andamento...</span>
+            <button id="operationBannerClose" class="btn btn-outline" type="button" style="margin-left:auto;">Fechar</button>
+        </div>
+    </div>
+
     <div class="card">
         <h2>Importar Dados da Planilha (Copiar e Colar)</h2>
         <p>Copie as linhas da sua planilha Excel e cole-as diretamente na caixa de texto abaixo para analisar os lançamentos.</p>
@@ -251,35 +260,66 @@
         lancamentosValidosParaSalvar = [];
     }
 
-    /** Faz uma varredura para identificar todo o banco e deletar cada documento permanentemente */
+    /** Faz uma varredura para identificar todo o banco e deletar cada documento permanentemente (mostra banner + spinner) */
     async function limparColecaoLancamentos() {
         if (!confirm("ATENÇÃO: Tem certeza absoluta que deseja APAGAR TODOS os registros do banco de dados? Esta ação não pode ser desfeita.")) {
             return;
         }
-        
+
+        const btn = document.querySelector('.btn-danger-zone');
+        const banner = document.getElementById('operationBanner');
+        const bannerText = document.getElementById('operationBannerText');
+
         try {
+            // UI: bloquear botão e exibir banner
+            if (btn) { btn.disabled = true; btn.innerText = 'Apagando registros...'; }
+            if (banner) { banner.style.display = 'block'; banner.classList.remove('success','error'); banner.classList.add('info'); bannerText.textContent = 'Apagando registros do banco — por favor, aguarde...'; }
+
             const snapshot = await db.collection("lancamentos").get();
-            if (snapshot.empty) {
-                alert("O banco já está vazio.");
+            if (!snapshot || snapshot.empty) {
+                if (banner) { bannerText.textContent = 'O banco já está vazio.'; banner.classList.remove('info'); banner.classList.add('success'); }
+                if (btn) { btn.disabled = false; btn.innerText = 'Apagar Todos os Lançamentos do Banco'; }
                 return;
             }
-            
-            const batch = db.batch();
-            snapshot.forEach((doc) => {
-                batch.delete(doc.ref);
-            });
-            
-            await batch.commit();
-            alert("Base de dados limpa com sucesso!");
+
+            // Deleta em lotes para evitar limite do batch (500)
+            const docs = [];
+            snapshot.forEach((d) => docs.push(d));
+            let deletedCount = 0;
+            while (docs.length) {
+                const chunk = docs.splice(0, 500);
+                const batch = db.batch();
+                chunk.forEach((doc) => batch.delete(doc.ref));
+                await batch.commit();
+                deletedCount += chunk.length;
+                if (banner) { bannerText.textContent = `Apagando registros: ${deletedCount} removidos...`; }
+            }
+
+            if (banner) { bannerText.textContent = `Base de dados limpa com sucesso! ${deletedCount} documentos removidos.`; banner.classList.remove('info'); banner.classList.add('success'); }
+
+            // Reset visual
             txtArea.value = "";
             secaoPreview.style.display = "none";
             tbodyPreview.innerHTML = "";
             lancamentosValidosParaSalvar = [];
+
+            if (btn) { btn.disabled = false; btn.innerText = 'Apagar Todos os Lançamentos do Banco'; }
         } catch (e) {
             console.error(e);
+            if (banner) { bannerText.textContent = 'Erro ao limpar registros: ' + (e && e.message ? e.message : e); banner.classList.remove('info'); banner.classList.add('error'); }
+            if (btn) { btn.disabled = false; btn.innerText = 'Apagar Todos os Lançamentos do Banco'; }
             alert("Erro ao limpar registros.");
         }
     }
+
+    // Banner close handler
+    document.addEventListener('DOMContentLoaded', function() {
+        const closeBtn = document.getElementById('operationBannerClose');
+        const banner = document.getElementById('operationBanner');
+        if (closeBtn && banner) {
+            closeBtn.addEventListener('click', function() { banner.style.display = 'none'; });
+        }
+    });
 </script>
 </body>
 </html>
