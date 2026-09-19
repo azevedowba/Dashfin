@@ -26,11 +26,12 @@ if (!db) {
   console.error("Não foi possível inicializar o Firestore. O Firebase SDK não carregou corretamente.");
 }
 
-// Suporte ao Firebase Emulator Suite (apenas quando em ambiente local ou com ?useEmulator=1)
+// Suporte ao Firebase Emulator Suite (somente quando explicitamente solicitado com ?useEmulator=1)
 (function enableEmulatorIfRequested() {
   try {
     const params = new URLSearchParams(window.location.search);
-    const useEmulator = params.get('useEmulator') === '1' || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+    // Mudar comportamento: EMULATOR só liga se ?useEmulator=1 for passado explicitamente.
+    const useEmulator = params.get('useEmulator') === '1';
     window.DASHFIN.useEmulator = useEmulator;
     if (!useEmulator) return;
     console.info('DASHFIN: conectando aos emuladores do Firebase (auth:127.0.0.1:9099, firestore:127.0.0.1:8080)');
