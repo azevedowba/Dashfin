@@ -95,6 +95,25 @@
     // Array global temporário para armazenar apenas as linhas válidas (não duplicadas)
     let lancamentosValidosParaSalvar = [];
 
+    // Helpers: banner-based feedback (substitui alert())
+    function showOperationBanner(message, type = 'info', autoHideMs = 0) {
+        const banner = document.getElementById('operationBanner');
+        const bannerText = document.getElementById('operationBannerText');
+        if (!banner || !bannerText) return;
+        banner.style.display = 'block';
+        banner.classList.remove('info', 'success', 'error');
+        banner.classList.add(type);
+        bannerText.textContent = message;
+        if (autoHideMs && autoHideMs > 0) {
+            setTimeout(() => { banner.style.display = 'none'; }, autoHideMs);
+        }
+    }
+
+    function hideOperationBanner() {
+        const banner = document.getElementById('operationBanner');
+        if (banner) banner.style.display = 'none';
+    }
+
     /** Intercepta a importação e já atribui se a despesa deve ser tratada como fixa ou variável */
     function mapearSubcategoriaAutomatica(categoriaOriginal) {
         if (!categoriaOriginal) return "Custo Variável";
@@ -115,7 +134,7 @@
     async function gerarPreVisualizacao() {
         const conteudo = txtArea.value.trim();
         if (!conteudo) {
-            alert("Por favor, cole os dados da planilha antes de processar.");
+        showOperationBanner("Por favor, cole os dados da planilha antes de processar.", 'error', 5000);
             return;
         }
 
@@ -143,7 +162,7 @@
         }
 
         if (linhasParaProcessar.length === 0) {
-            alert("Nenhum dado válido encontrado para estruturar a tabela.");
+        showOperationBanner("Nenhum dado válido encontrado para estruturar a tabela.", 'error', 5000);
             btnAnalisar.disabled = false;
             btnAnalisar.innerText = "Analisar e Pré-visualizar Dados";
             return;
@@ -251,7 +270,7 @@
             }
         }
 
-        alert(`Sucesso! ${sucessoCount} novos itens foram importados com sucesso.`);
+        showOperationBanner(`Sucesso! ${sucessoCount} novos itens foram importados com sucesso.`, 'success', 6000);
         
         // Reseta o estado visual completo da aplicação
         txtArea.value = "";
@@ -308,7 +327,6 @@
             console.error(e);
             if (banner) { bannerText.textContent = 'Erro ao limpar registros: ' + (e && e.message ? e.message : e); banner.classList.remove('info'); banner.classList.add('error'); }
             if (btn) { btn.disabled = false; btn.innerText = 'Apagar Todos os Lançamentos do Banco'; }
-            alert("Erro ao limpar registros.");
         }
     }
 
