@@ -23,6 +23,22 @@
 
 <div id="appContent">
 
+    <div id="dashfinBanner" class="dashfin-banner" role="status" aria-live="polite">
+        <span id="dashfinBannerText">Mensagem</span>
+        <button type="button" class="banner-close" aria-label="Fechar mensagem">×</button>
+    </div>
+
+    <div id="dashfinConfirmOverlay" class="dashfin-confirm-overlay" aria-hidden="true">
+        <div class="dashfin-confirm-modal" role="dialog" aria-modal="true">
+            <div class="dashfin-confirm-header" id="dashfinConfirmTitle">Confirmação</div>
+            <div class="dashfin-confirm-body" id="dashfinConfirmText">Tem certeza?</div>
+            <div class="dashfin-confirm-actions">
+                <button type="button" class="secondary" id="dashfinConfirmCancel">Cancelar</button>
+                <button type="button" class="danger" id="dashfinConfirmOk">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
 <header class="main-header">
     <div class="brand">
         <span class="brand-mark">D</span>

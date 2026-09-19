@@ -118,7 +118,7 @@ async function salvarNovoLancamentoInline() {
     });
 
     if (!desc || !valorRaw || !dataRaw || !category) {
-        alert("Por favor, preencha a Descrição, o Valor, a Categoria e a Data.");
+        exibirBanner("Por favor, preencha a Descrição, o Valor, a Categoria e a Data.", "error", 5000);
         return;
     }
 
@@ -132,11 +132,12 @@ async function salvarNovoLancamentoInline() {
 
     try {
         await db.collection("lancamentos").add(novoDoc);
+        exibirBanner("Lançamento salvo com sucesso.", "success", 4000);
         const inputRow = document.getElementById("linhaNovoLancamento");
         if (inputRow) inputRow.remove();
     } catch (e) {
         console.error("Erro ao salvar lançamento:", e);
-        alert("Erro ao salvar no banco.");
+        exibirBanner("Erro ao salvar no banco.", "error", 5000);
     }
 }
 
@@ -265,7 +266,7 @@ async function salvarEdicaoItemInline(id) {
     });
 
     if (!desc || !valorRaw || !dataRaw || !category) {
-        alert("Por favor, preencha a Descrição, o Valor, a Categoria e a Data.");
+        exibirBanner("Por favor, preencha a Descrição, o Valor, a Categoria e a Data.", "error", 5000);
         return;
     }
 
@@ -280,9 +281,10 @@ async function salvarEdicaoItemInline(id) {
 
     try {
         await db.collection("lancamentos").doc(id).update(atualizadoDoc);
+        exibirBanner("Lançamento atualizado com sucesso.", "success", 4000);
     } catch (e) {
         console.error("Erro ao atualizar lançamento:", e);
-        alert("Erro ao atualizar no banco.");
+        exibirBanner("Erro ao atualizar no banco.", "error", 5000);
     }
 }
 
@@ -297,13 +299,67 @@ async function alternarStatusLancamento(id, statusAtual) {
 }
 
 async function deletarLancamento(id, desc) {
-    if (confirm(`Excluir permanentemente "${desc}"?`)) {
-        try {
-            await db.collection("lancamentos").doc(id).delete();
-        } catch (e) {
-            console.error("Erro ao deletar lançamento:", e);
-        }
+    const confirmado = await confirmarAcao(`Excluir permanentemente "${desc}"?`);
+    if (!confirmado) return;
+
+    try {
+        await db.collection("lancamentos").doc(id).delete();
+        exibirBanner("Lançamento removido com sucesso.", "success", 4000);
+    } catch (e) {
+        console.error("Erro ao deletar lançamento:", e);
+        exibirBanner("Erro ao deletar lançamento.", "error", 5000);
     }
+}
+
+function exibirBanner(message, type = 'info', autoHideMs = 5000) {
+    const banner = document.getElementById('dashfinBanner');
+    const bannerText = document.getElementById('dashfinBannerText');
+    const closeBtn = banner ? banner.querySelector('.banner-close') : null;
+    if (!banner || !bannerText) return;
+
+    banner.className = `dashfin-banner visible ${type}`;
+    bannerText.textContent = message;
+
+    if (closeBtn) {
+        closeBtn.onclick = () => banner.classList.remove('visible');
+    }
+
+    if (autoHideMs > 0) {
+        clearTimeout(banner._hideTimer);
+        banner._hideTimer = setTimeout(() => banner.classList.remove('visible'), autoHideMs);
+    }
+}
+
+function confirmarAcao(message) {
+    return new Promise((resolve) => {
+        const overlay = document.getElementById('dashfinConfirmOverlay');
+        const title = document.getElementById('dashfinConfirmTitle');
+        const text = document.getElementById('dashfinConfirmText');
+        const ok = document.getElementById('dashfinConfirmOk');
+        const cancel = document.getElementById('dashfinConfirmCancel');
+
+        if (!overlay || !title || !text || !ok || !cancel) {
+            resolve(false);
+            return;
+        }
+
+        title.textContent = 'Confirmação';
+        text.textContent = message;
+        overlay.classList.add('visible');
+        overlay.setAttribute('aria-hidden', 'false');
+
+        const finish = (value) => {
+            overlay.classList.remove('visible');
+            overlay.setAttribute('aria-hidden', 'true');
+            resolve(value);
+        };
+
+        ok.onclick = () => finish(true);
+        cancel.onclick = () => finish(false);
+        overlay.onclick = (event) => {
+            if (event.target === overlay) finish(false);
+        };
+    });
 }
 
 function calcularSaldosContasGlobais() {

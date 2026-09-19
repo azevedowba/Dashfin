@@ -133,7 +133,7 @@ function salvarSaldosIniciais() {
     localStorage.setItem("init_nubank", document.getElementById("initNubank").value);
     localStorage.setItem("init_valealim", document.getElementById("initValeAlim").value);
     localStorage.setItem("init_valeref", document.getElementById("initValeRef").value);
-    alert("Ajustes de saldo inicial salvos com sucesso!");
+    exibirBanner("Ajustes de saldo inicial salvos com sucesso!", "success", 4000);
     calcularSaldosContasGlobais();
     renderizarFeedFiltrado();
 }
