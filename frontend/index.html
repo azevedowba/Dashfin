@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -11,7 +11,7 @@
 <div id="loginGate" class="login-gate">
     <div class="login-gate-box">
         <h1>Dashfin - Sistema Financeiro</h1>
-        <p>FaÃ§a login com sua conta Google para acessar seu painel financeiro.</p>
+        <p>Faça login com sua conta Google para acessar seu painel financeiro.</p>
         <button id="btn-login" class="btn-login-gate">Entrar com Google</button>
         <div id="loginGateErro" class="login-gate-erro"></div>
     </div>
@@ -19,15 +19,21 @@
 
 <div id="appContent">
 
-<header>
-    <div class="logo">Dashfin - Sistema Financeiro</div>
-    <button id="btn-logout" class="btn-limpar-busca" style="color:white; border:1px solid rgba(255,255,255,0.4); border-radius:4px; padding:6px 12px;">Sair</button>
+<header class="main-header">
+    <div class="brand">
+        <span class="brand-mark">D</span>
+        <span class="logo">Dashfin</span>
+    </div>
 
-    <nav>
-        <a href="index.html" class="nav-link active">Dashboard & HistÃ³rico</a>
-        <a href="graficos.html" class="nav-link">AnÃ¡lise & GrÃ¡ficos</a>
-        <a href="operacoes.html" class="nav-link">LanÃ§amentos & ImportaÃ§Ã£o</a>
+    <nav aria-label="Navegação principal">
+        <a href="index.html" class="nav-link active">Dashboard &amp; Histórico</a>
+        <a href="graficos.html" class="nav-link">Análise &amp; Gráficos</a>
+        <a href="operacoes.html" class="nav-link">Lançamentos &amp; Importação</a>
     </nav>
+
+    <div class="header-actions">
+        <button id="btn-logout" class="btn-header-logout" type="button">Sair</button>
+    </div>
 </header>
 
 <div class="main-layout">
@@ -35,44 +41,44 @@
     <div class="sidebar">
         
         <div class="card search-box-container">
-            <h3 style="margin-bottom: 12px;">ðŸ” Busca RÃ¡pida</h3>
+            <h3 style="margin-bottom: 12px;"> Busca Rápida</h3>
             <div class="search-input-wrapper">
-                <span class="search-icon">ðŸ”Ž</span>
+                <span class="search-icon"></span>
                 <input 
                     type="text" 
                     id="searchInput" 
-                    placeholder="Buscar por descriÃ§Ã£o, categoria..."
+                    placeholder="Buscar por descrição, categoria..."
                     autocomplete="off"
                 >
-                <button class="btn-limpar-busca" id="btnLimparBusca" onclick="limparBusca()" style="display: none;">âœ•</button>
+                <button class="btn-limpar-busca" id="btnLimparBusca" onclick="limparBusca()" style="display: none;"></button>
             </div>
             <div class="search-results-info" id="searchResultsInfo"></div>
         </div>
 
         <div class="card">
-            <h3 style="margin-bottom: 12px;">âš™ï¸ ConciliaÃ§Ã£o DiÃ¡ria</h3>
+            <h3 style="margin-bottom: 12px;">Conciliação Diária</h3>
             <div class="conciliacao-opcoes">
                 <label class="checkbox-item-conciliacao">
                     <input type="checkbox" id="incluirSaldoAnterior" checked>
-                    Incluir saldo do mÃªs anterior
+                    Incluir saldo do mês anterior
                 </label>
             </div>
         </div>
 
         <div class="card">
             <div style="display: flex; align-items: center; justify-content: space-between;">
-                <h3 style="margin: 0;">Filtros de VisualizaÃ§Ã£o</h3>
+                <h3 style="margin: 0;">Filtros de Visualização</h3>
                 <button class="btn-limpar-filtros" onclick="limparFiltrosIndex()">Limpar Filtros</button>
             </div>
             
             <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 8px;">
                 <div class="filter-group">
-                    <label for="filtroMes">MÃªs</label>
+                    <label for="filtroMes">Mês</label>
                     <select id="filtroMes">
                         <option value="TODOS">Todos os Meses</option>
                         <option value="JANEIRO">Janeiro</option>
                         <option value="FEVEREIRO">Fevereiro</option>
-                        <option value="MARÃ‡O">MarÃ§o</option>
+                        <option value="MARO">Março</option>
                         <option value="ABRIL">Abril</option>
                         <option value="MAIO">Maio</option>
                         <option value="JUNHO">Junho</option>
@@ -93,7 +99,7 @@
             </div>
 
             <div class="filter-group">
-                <label>Tipo de MovimentaÃ§Ã£o</label>
+                <label>Tipo de Movimentação</label>
                 <div class="checkbox-group">
                     <label class="checkbox-item">
                         <input type="checkbox" id="chkMovReceita" checked> Receita
@@ -102,19 +108,19 @@
                         <input type="checkbox" id="chkMovDespesa" checked> Despesa
                     </label>
                     <label class="checkbox-item">
-                        <input type="checkbox" id="chkMovTransferencia" checked> TransferÃªncia
+                        <input type="checkbox" id="chkMovTransferencia" checked> Transferência
                     </label>
                 </div>
             </div>
 
             <div class="filter-group">
-                <label>Status do LanÃ§amento</label>
+                <label>Status do Lançamento</label>
                 <div class="checkbox-group">
                     <label class="checkbox-item">
                         <input type="checkbox" id="chkStatusPago" checked> Pago
                     </label>
                     <label class="checkbox-item">
-                        <input type="checkbox" id="chkStatusPrevisao"> PrevisÃ£o
+                        <input type="checkbox" id="chkStatusPrevisao"> Previsão
                     </label>
                 </div>
             </div>
@@ -124,11 +130,11 @@
                 <select id="filtroConta">
                     <option value="TODAS">Todas as Contas</option>
                     <option value="Banrisul">Banrisul</option>
-                    <option value="CartÃ£o Nubank">CartÃ£o Nubank</option>
-                    <option value="CartÃ£o XP">CartÃ£o XP</option>
+                    <option value="Cartão Nubank">Cartão Nubank</option>
+                    <option value="Cartão XP">Cartão XP</option>
                     <option value="Carteira">Carteira</option>
-                    <option value="Vale AlimentaÃ§Ã£o">Vale AlimentaÃ§Ã£o</option>
-                    <option value="Vale RefeiÃ§Ã£o">Vale RefeiÃ§Ã£o</option>
+                    <option value="Vale Alimentação">Vale Alimentação</option>
+                    <option value="Vale Refeição">Vale Refeição</option>
                 </select>
             </div>
 
@@ -138,26 +144,26 @@
                     <option value="TODAS">Todas as Categorias</option>
                     <option value="Ajuda de custos">Ajuda de custos</option>
                     <option value="Barba e Cabelo">Barba e Cabelo</option>
-                    <option value="BenefÃ­cio Vale AlimentaÃ§Ã£o">BenefÃ­cio Vale AlimentaÃ§Ã£o</option>
-                    <option value="BenefÃ­cio Vale RefeiÃ§Ã£o">BenefÃ­cio Vale RefeiÃ§Ã£o</option>
+                    <option value="Benefício Vale Alimentação">Benefício Vale Alimentação</option>
+                    <option value="Benefício Vale Refeição">Benefício Vale Refeição</option>
                     <option value="Bonus PPR">Bonus PPR</option>
                     <option value="Cafezinho">Cafezinho</option>
                     <option value="Carro">Carro</option>
                     <option value="Celular">Celular</option>
-                    <option value="CombustÃ­vel">CombustÃ­vel</option>
-                    <option value="CondomÃ­nio">CondomÃ­nio</option>
+                    <option value="Combustível">Combustível</option>
+                    <option value="Condomínio">Condomínio</option>
                     <option value="Conta de Agua">Conta de Agua</option>
                     <option value="Conta de Luz">Conta de Luz</option>
                     <option value="Creche">Creche</option>
                     <option value="Dentista">Dentista</option>
-                    <option value="DÃ©cimo terceiro SalÃ¡rio">DÃ©cimo terceiro SalÃ¡rio</option>
+                    <option value="Décimo terceiro Salário">Décimo terceiro Salário</option>
                     <option value="Estacionamento">Estacionamento</option>
-                    <option value="FarmÃ¡cia">FarmÃ¡cia</option>
+                    <option value="Farmácia">Farmácia</option>
                     <option value="Faxina">Faxina</option>
                     <option value="Feira">Feira</option>
                     <option value="Financiamento Casa">Financiamento Casa</option>
-                    <option value="FÃ©rias">FÃ©rias</option>
-                    <option value="GÃ¡s">GÃ¡s</option>
+                    <option value="Férias">Férias</option>
+                    <option value="Gás">Gás</option>
                     <option value="Gastos com Cursos">Gastos com Cursos</option>
                     <option value="Gastos com Jogos ou PC">Gastos com Livros</option>
                     <option value="Gastos Pessoais">Gastos Pessoais</option>
@@ -166,37 +172,37 @@
                     <option value="IPVA">IPVA</option>
                     <option value="IRPF">IRPF</option>
                     <option value="Lazer">Lazer</option>
-                    <option value="Materiais de ConstruÃ§Ã£o">Materiais de ConstruÃ§Ã£o</option>
+                    <option value="Materiais de Construção">Materiais de Construção</option>
                     <option value="Material de Ferragem ou Ferramentas">Material de Ferragem ou Ferramentas</option>
-                    <option value="MÃ©dico">MÃ©dico</option>
-                    <option value="MÃ³veis">MÃ³veis</option>
+                    <option value="Médico">Médico</option>
+                    <option value="Móveis">Móveis</option>
                     <option value="Padaria">Padaria</option>
-                    <option value="PedÃ¡gio">PedÃ¡gio</option>
+                    <option value="Pedágio">Pedágio</option>
                     <option value="Pet">Pet</option>
                     <option value="Pilates">Pilates</option>
-                    <option value="PrÃªmio Receita Certa">PrÃªmio Receita Certa</option>
+                    <option value="Prêmio Receita Certa">Prêmio Receita Certa</option>
                     <option value="Presentes">Presentes</option>
                     <option value="Prioridades Financeiras (15%)">Prioridades Financeiras (15%)</option>
                     <option value="Reforma da Casa">Reforma da Casa</option>
                     <option value="Restaurante">Restaurante</option>
-                    <option value="SalÃ¡rio">SalÃ¡rio</option>
+                    <option value="Salário">Salário</option>
                     <option value="Seguro da Casa">Seguro da Casa</option>
                     <option value="Seguro do Carro">Seguro do Carro</option>
                     <option value="Streamings">Streamings</option>
                     <option value="Supermercado">Supermercado</option>
-                    <option value="Taxas do CartÃ³rio">Taxas do CartÃ³rio</option>
+                    <option value="Taxas do Cartório">Taxas do Cartório</option>
                     <option value="Taxi/Uber">Taxi/Uber</option>
                     <option value="Terapeuta">Terapeuta</option>
-                    <option value="TransferÃªncia">TransferÃªncia</option>
-                    <option value="UtensÃ­lios para casa">UtensÃ­lios para casa</option>
-                    <option value="VestuÃ¡rio">VestuÃ¡rio</option>
+                    <option value="Transferência">Transferência</option>
+                    <option value="Utensílios para casa">Utensílios para casa</option>
+                    <option value="Vestuário">Vestuário</option>
                     <option value="Viagens">Viagens</option>
                 </select>
             </div>
 
             <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 10px 0;">
             <div class="resumo-filtro">
-                <span>Resultado do PerÃ­odo:</span>
+                <span>Resultado do Período:</span>
                 <span id="txtTotalFiltrado">R$ 0,00</span>
             </div>
         </div>
@@ -250,11 +256,11 @@
         </div>
 
         <div style="display: flex; justify-content: flex-start;">
-            <button class="btn-adicionar-discreto" onclick="criarLinhaNovoLancamentoInline()">âž• Adicionar LanÃ§amento</button>
+            <button class="btn-adicionar-discreto" onclick="criarLinhaNovoLancamentoInline()"> Adicionar Lançamento</button>
         </div>
 
         <div class="feed-header">
-            <h2>HistÃ³rico de Gastos e Receitas</h2>
+            <h2>Histórico de Gastos e Receitas</h2>
             <span id="contadorItens" class="contador-itens">Conectando...</span>
         </div>
         

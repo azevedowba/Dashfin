@@ -1,41 +1,49 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashfin - OperaÃ§Ãµes</title>
+    <title>Dashfin - Operações</title>
     <link rel="stylesheet" href="css/operacoes.css">
 </head>
 <body>
 
-<header>
-    <div style="font-size: 1.2em; font-weight: bold;">Dashfin - Sistema Financeiro</div>
-    <nav>
-        <a href="index.html">Dashboard & HistÃ³rico</a>
-        <a href="graficos.html">AnÃ¡lise & GrÃ¡ficos</a>
-        <a href="operacoes.html" class="active">LanÃ§amentos & ImportaÃ§Ã£o</a>
+<header class="main-header">
+    <div class="brand">
+        <span class="brand-mark">D</span>
+        <span class="logo">Dashfin</span>
+    </div>
+
+    <nav aria-label="Navegação principal">
+        <a href="index.html">Dashboard &amp; Histórico</a>
+        <a href="graficos.html">Análise &amp; Gráficos</a>
+        <a href="operacoes.html" class="active">Lançamentos &amp; Importação</a>
     </nav>
+
+    <div class="header-actions">
+        <button id="btn-logout" class="btn-header-logout" type="button">Sair</button>
+    </div>
 </header>
 
 <div class="main-layout">
 
     <div class="card">
         <h2>Importar Dados da Planilha (Copiar e Colar)</h2>
-        <p>Copie as linhas da sua planilha Excel e cole-as diretamente na caixa de texto abaixo para analisar os lanÃ§amentos.</p>
+        <p>Copie as linhas da sua planilha Excel e cole-as diretamente na caixa de texto abaixo para analisar os lançamentos.</p>
         
         <textarea id="txtDadosPlanilha" placeholder="Cole as linhas da sua planilha aqui..."></textarea>
-        <button id="btnAnalisar" class="btn-importar" onclick="gerarPreVisualizacao()">Analisar e PrÃ©-visualizar Dados</button>
+        <button id="btnAnalisar" class="btn-importar" onclick="gerarPreVisualizacao()">Analisar e Pré-visualizar Dados</button>
 
         <div id="secaoPreview" class="preview-wrapper" style="display: none;">
-            <h3 style="color: var(--primary-color); margin-top: 0;">Dados Prontos para RevisÃ£o</h3>
-            <p style="margin-bottom: 10px;">Confira abaixo a anÃ¡lise das linhas identificadas antes de efetivar a gravaÃ§Ã£o no banco de dados.</p>
+            <h3 style="color: var(--primary-color); margin-top: 0;">Dados Prontos para Revisão</h3>
+            <p style="margin-bottom: 10px;">Confira abaixo a análise das linhas identificadas antes de efetivar a gravação no banco de dados.</p>
             
             <div style="overflow-x: auto; max-height: 400px; border: 1px solid var(--border-color); border-radius: 4px;">
                 <table class="table-preview">
                     <thead>
                         <tr>
                             <th>Data</th>
-                            <th>DescriÃ§Ã£o</th>
+                            <th>Descrição</th>
                             <th>Valor</th>
                             <th>Categoria</th>
                             <th>Status no Banco</th>
@@ -51,8 +59,8 @@
 
     <div class="card" style="border-color: #ffcdd2;">
         <h2 style="color: #c62828;">Zona de Perigo</h2>
-        <p>Se vocÃª precisar reiniciar os dados do sistema ou reimportar a planilha do zero para evitar duplicidades, utilize a opÃ§Ã£o abaixo para limpar todos os lanÃ§amentos atualmente guardados do Firestore.</p>
-        <button class="btn-danger-zone" onclick="limparColecaoLancamentos()">Apagar Todos os LanÃ§amentos do Banco</button>
+        <p>Se você precisar reiniciar os dados do sistema ou reimportar a planilha do zero para evitar duplicidades, utilize a opção abaixo para limpar todos os lançamentos atualmente guardados do Firestore.</p>
+        <button class="btn-danger-zone" onclick="limparColecaoLancamentos()">Apagar Todos os Lançamentos do Banco</button>
     </div>
 
 </div>
@@ -68,26 +76,26 @@
     const btnAnalisar = document.getElementById('btnAnalisar');
     const btnConfirmarImportacao = document.getElementById('btnConfirmarImportacao');
 
-    // Array global temporÃ¡rio para armazenar apenas as linhas vÃ¡lidas (nÃ£o duplicadas)
+    // Array global temporário para armazenar apenas as linhas válidas (não duplicadas)
     let lancamentosValidosParaSalvar = [];
 
-    /** Intercepta a importaÃ§Ã£o e jÃ¡ atribui se a despesa deve ser tratada como fixa ou variÃ¡vel */
+    /** Intercepta a importação e já atribui se a despesa deve ser tratada como fixa ou variável */
     function mapearSubcategoriaAutomatica(categoriaOriginal) {
-        if (!categoriaOriginal) return "Custo VariÃ¡vel";
+        if (!categoriaOriginal) return "Custo Variável";
         
         const cat = categoriaOriginal.trim();
         const custosFixos = [
-            "Celular", "CombustÃ­vel", "CondomÃ­nio", "Conta de Agua", 
-            "Conta de Luz", "Creche", "Financiamento Casa", "GÃ¡s", 
+            "Celular", "Combustível", "Condomínio", "Conta de Agua", 
+            "Conta de Luz", "Creche", "Financiamento Casa", "Gás", 
             "Internet", "IPTU", "IPVA", "IRPF"
         ];
 
         if (custosFixos.includes(cat)) return "Custo Fixo";
         
-        return "Custo VariÃ¡vel";
+        return "Custo Variável";
     }
 
-    /** LÃª o texto, valida duplicatas no Firestore e monta a tabela de prÃ©-visualizaÃ§Ã£o */
+    /** Lê o texto, valida duplicatas no Firestore e monta a tabela de pré-visualização */
     async function gerarPreVisualizacao() {
         const conteudo = txtArea.value.trim();
         if (!conteudo) {
@@ -114,14 +122,14 @@
         if (linhasParaProcessar.length > 0) {
             const primeiraDesc = linhasParaProcessar[0][0] || "";
             if (primeiraDesc.toLowerCase().includes("data")) {
-                linhasParaProcessar.shift(); // Ignora cabeÃ§alho
+                linhasParaProcessar.shift(); // Ignora cabeçalho
             }
         }
 
         if (linhasParaProcessar.length === 0) {
-            alert("Nenhum dado vÃ¡lido encontrado para estruturar a tabela.");
+            alert("Nenhum dado válido encontrado para estruturar a tabela.");
             btnAnalisar.disabled = false;
-            btnAnalisar.innerText = "Analisar e PrÃ©-visualizar Dados";
+            btnAnalisar.innerText = "Analisar e Pré-visualizar Dados";
             return;
         }
 
@@ -139,7 +147,7 @@
 
             const novoDocumento = {
                 data: col[0] ? col[0].trim() : "",
-                descricao: col[1] ? col[1].trim() : "Sem descriÃ§Ã£o",
+                descricao: col[1] ? col[1].trim() : "Sem descrição",
                 valor: valorNumerico,
                 categoriaOriginal: categoria,
                 contaOrigem: col[4] ? col[4].trim() : "Carteira",
@@ -153,7 +161,7 @@
             let existeNoBanco = false;
 
             try {
-                // Valida se as principais propriedades combinadas jÃ¡ existem no Firestore
+                // Valida se as principais propriedades combinadas já existem no Firestore
                 const snapshot = await db.collection("lancamentos")
                     .where("data", "==", novoDocumento.data)
                     .where("descricao", "==", novoDocumento.descricao)
@@ -166,7 +174,7 @@
                     existeNoBanco = true;
                 }
             } catch (err) {
-                console.error("Erro na validaÃ§Ã£o de duplicidade: ", err);
+                console.error("Erro na validação de duplicidade: ", err);
             }
 
             const tr = document.createElement('tr');
@@ -178,7 +186,7 @@
                     <td>${novoDocumento.descricao}</td>
                     <td>R$ ${novoDocumento.valor.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
                     <td>${novoDocumento.categoriaOriginal}</td>
-                    <td><strong>âš ï¸ JÃ¡ existe (SerÃ¡ Ignorado)</strong></td>
+                    <td><strong>Já existe (Será Ignorado)</strong></td>
                 `;
             } else {
                 tr.className = 'row-valida';
@@ -187,7 +195,7 @@
                     <td>${novoDocumento.descricao}</td>
                     <td>R$ ${novoDocumento.valor.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
                     <td>${novoDocumento.categoriaOriginal}</td>
-                    <td>âœ… Novo registro</td>
+                    <td> Novo registro</td>
                 `;
                 lancamentosValidosParaSalvar.push(novoDocumento);
             }
@@ -195,21 +203,21 @@
             tbodyPreview.appendChild(tr);
         }
 
-        // Exibe a tela de confirmaÃ§Ã£o estruturada
+        // Exibe a tela de confirmação estruturada
         secaoPreview.style.display = "block";
         btnAnalisar.disabled = false;
-        btnAnalisar.innerText = "Analisar e PrÃ©-visualizar Dados";
+        btnAnalisar.innerText = "Analisar e Pré-visualizar Dados";
 
         if (lancamentosValidosParaSalvar.length === 0) {
             btnConfirmarImportacao.disabled = true;
             btnConfirmarImportacao.innerText = "Nenhum novo registro para importar";
         } else {
             btnConfirmarImportacao.disabled = false;
-            btnConfirmarImportacao.innerText = `Confirmar e Enviar ${lancamentosValidosParaSalvar.length} LanÃ§amentos VÃ¡lidos`;
+            btnConfirmarImportacao.innerText = `Confirmar e Enviar ${lancamentosValidosParaSalvar.length} Lançamentos Válidos`;
         }
     }
 
-    /** Envia apenas os dados validados que nÃ£o constam como duplicatas */
+    /** Envia apenas os dados validados que não constam como duplicatas */
     async function confirmarImportacao() {
         if (lancamentosValidosParaSalvar.length === 0) return;
 
@@ -229,7 +237,7 @@
 
         alert(`Sucesso! ${sucessoCount} novos itens foram importados com sucesso.`);
         
-        // Reseta o estado visual completo da aplicaÃ§Ã£o
+        // Reseta o estado visual completo da aplicação
         txtArea.value = "";
         secaoPreview.style.display = "none";
         tbodyPreview.innerHTML = "";
@@ -238,14 +246,14 @@
 
     /** Faz uma varredura para identificar todo o banco e deletar cada documento permanentemente */
     async function limparColecaoLancamentos() {
-        if (!confirm("âš ï¸ ATENÃ‡ÃƒO: Tem certeza absoluta que deseja APAGAR TODOS os registros do banco de dados? Esta aÃ§Ã£o nÃ£o pode ser desfeita.")) {
+        if (!confirm("ATENÇÃO: Tem certeza absoluta que deseja APAGAR TODOS os registros do banco de dados? Esta ação não pode ser desfeita.")) {
             return;
         }
         
         try {
             const snapshot = await db.collection("lancamentos").get();
             if (snapshot.empty) {
-                alert("O banco jÃ¡ estÃ¡ vazio.");
+                alert("O banco já está vazio.");
                 return;
             }
             

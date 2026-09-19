@@ -1,20 +1,28 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashfin - AnÃ¡lise & GrÃ¡ficos</title>
+    <title>Dashfin - Análise & Gráficos</title>
     <link rel="stylesheet" href="css/graficos.css">
 </head>
 <body>
 
-<header>
-    <div class="logo">Dashfin - Sistema Financeiro</div>
-    <nav>
-        <a href="index.html" class="nav-link">Dashboard & HistÃ³rico</a>
-        <a href="graficos.html" class="nav-link active">AnÃ¡lise & GrÃ¡ficos</a>
-        <a href="operacoes.html" class="nav-link">LanÃ§amentos & ImportaÃ§Ã£o</a>
+<header class="main-header">
+    <div class="brand">
+        <span class="brand-mark">D</span>
+        <span class="logo">Dashfin</span>
+    </div>
+
+    <nav aria-label="Navegação principal">
+        <a href="index.html" class="nav-link">Dashboard &amp; Histórico</a>
+        <a href="graficos.html" class="nav-link active">Análise &amp; Gráficos</a>
+        <a href="operacoes.html" class="nav-link">Lançamentos &amp; Importação</a>
     </nav>
+
+    <div class="header-actions">
+        <button id="btn-logout" class="btn-header-logout" type="button">Sair</button>
+    </div>
 </header>
 
 <div class="container">
@@ -34,11 +42,11 @@
             <select id="selectContaGraficos" onchange="processarDadosGraficos()">
                 <option value="TODAS">Todas as Contas</option>
                 <option value="Banrisul">Banrisul</option>
-                <option value="CartÃ£o Nubank">CartÃ£o Nubank</option>
-                <option value="CartÃ£o XP">CartÃ£o XP</option>
+                <option value="Cartão Nubank">Cartão Nubank</option>
+                <option value="Cartão XP">Cartão XP</option>
                 <option value="Carteira">Carteira</option>
-                <option value="Vale AlimentaÃ§Ã£o">Vale AlimentaÃ§Ã£o</option>
-                <option value="Vale RefeiÃ§Ã£o">Vale RefeiÃ§Ã£o</option>
+                <option value="Vale Alimentação">Vale Alimentação</option>
+                <option value="Vale Refeição">Vale Refeição</option>
             </select>
         </div>
 
@@ -48,7 +56,7 @@
                 <input type="checkbox" id="chkStatusPago" checked onchange="processarDadosGraficos()"> Pago
             </label>
             <label class="checkbox-item">
-                <input type="checkbox" id="chkStatusPrevisao" checked onchange="processarDadosGraficos()"> PrevisÃ£o
+                <input type="checkbox" id="chkStatusPrevisao" checked onchange="processarDadosGraficos()"> Previsão
             </label>
         </div>
 
@@ -58,7 +66,7 @@
     <div class="row">
         
         <div class="card-grafico">
-            <h3>Comparativo Mensal: Receitas Ã— Despesas Ã— Resultado LÃ­quido</h3>
+            <h3>Comparativo Mensal: Receitas  Despesas  Resultado Líquido</h3>
             <div class="canvas-container">
                 <canvas id="chartMensal"></canvas>
             </div>
@@ -73,14 +81,14 @@
 
         <div class="card-grafico">
             <div class="card-header-flex">
-                <h3>Despesas por Categoria no MÃªs</h3>
+                <h3>Despesas por Categoria no Mês</h3>
                 <div class="filter-group">
-                    <label for="selectMesGraficos">MÃªs:</label>
+                    <label for="selectMesGraficos">Mês:</label>
                     <select id="selectMesGraficos" onchange="processarDadosGraficos()">
                         <option value="TODOS">Todos os Meses</option>
                         <option value="JANEIRO">Janeiro</option>
                         <option value="FEVEREIRO">Fevereiro</option>
-                        <option value="MARÃ‡O">MarÃ§o</option>
+                        <option value="MARO">Março</option>
                         <option value="ABRIL">Abril</option>
                         <option value="MAIO">Maio</option>
                         <option value="JUNHO">Junho</option>
@@ -112,7 +120,7 @@
     let instanceChartRanking = null;
     let instanceChartAlfabetic = null;
 
-    const mesesNomes = ["JANEIRO","FEVEREIRO","MARÃ‡O","ABRIL","MAIO","JUNHO","JULHO","AGOSTO","SETEMBRO","OUTUBRO","NOVEMBRO","DEZEMBRO"];
+    const mesesNomes = ["JANEIRO","FEVEREIRO","MARO","ABRIL","MAIO","JUNHO","JULHO","AGOSTO","SETEMBRO","OUTUBRO","NOVEMBRO","DEZEMBRO"];
 
     function gerarCorPorString(str) {
         let hash = 0;
@@ -183,8 +191,8 @@
             const statusNormalizado = (item.status || "").trim().toLowerCase();
             
             if (statusNormalizado === "pago" && !chkPago) return;
-            if ((statusNormalizado === "previsÃ£o" || statusNormalizado === "previsao") && !chkPrevisao) return;
-            if (statusNormalizado !== "pago" && statusNormalizado !== "previsÃ£o" && statusNormalizado !== "previsao" && !chkPago) return;
+            if ((statusNormalizado === "previsão" || statusNormalizado === "previsao") && !chkPrevisao) return;
+            if (statusNormalizado !== "pago" && statusNormalizado !== "previsão" && statusNormalizado !== "previsao" && !chkPago) return;
 
             const anoDoItem = item.data && item.data.includes("/") ? item.data.split("/")[2] : "";
             if (anoFiltro !== "TODOS" && anoDoItem !== anoFiltro) return;
@@ -201,13 +209,13 @@
                     templatesReceitas[mesIndex] += valor;
                 } else if (mov === "despesa") {
                     templatesDespesas[mesIndex] += valor;
-                } else if ((mov === "transferÃªncia" || mov === "transferencia") && contaFiltro !== "TODAS") {
+                } else if ((mov === "transferência" || mov === "transferencia") && contaFiltro !== "TODAS") {
                     if (item.contaOrigem === contaFiltro) templatesDespesas[mesIndex] += valor;
                     if (item.contaDestino === contaFiltro) templatesReceitas[mesIndex] += valor;
                 }
             }
 
-            if (mov === "despesa" || (mov === "transferÃªncia" && contaFiltro !== "TODAS" && item.contaOrigem === contaFiltro)) {
+            if (mov === "despesa" || (mov === "transferência" && contaFiltro !== "TODAS" && item.contaOrigem === contaFiltro)) {
                 const categoria = item.categoriaOriginal || "Sem Categoria";
                 
                 rankingCategoriasGeral[categoria] = (rankingCategoriasGeral[categoria] || 0) + valor;
@@ -246,7 +254,7 @@
                 datasets: [
                     { label: 'Receitas (R$)', data: receitas, backgroundColor: '#4CAF50', borderRadius: 4 },
                     { label: 'Despesas (R$)', data: despesas, backgroundColor: '#ef5350', borderRadius: 4 },
-                    { label: 'Resultado LÃ­quido (R$)', data: resultados, backgroundColor: '#2196F3', borderRadius: 4, borderColor: '#1565C0', borderWidth: 1 }
+                    { label: 'Resultado Líquido (R$)', data: resultados, backgroundColor: '#2196F3', borderRadius: 4, borderColor: '#1565C0', borderWidth: 1 }
                 ]
             },
             options: {
@@ -332,7 +340,7 @@
         if (instanceChartAlfabetic) instanceChartAlfabetic.destroy();
 
         if (labels.length === 0) {
-            labels = ["Nenhum dado no perÃ­odo"];
+            labels = ["Nenhum dado no período"];
             valores = [0];
         }
 
