@@ -20,6 +20,7 @@
 
     <nav aria-label="Navegação principal">
         <a href="index.html">Dashboard &amp; Histórico</a>
+        <a href="orcamento.html">Orçamento</a>
         <a href="graficos.html">Análise &amp; Gráficos</a>
         <a href="operacoes.html" class="active">Lançamentos &amp; Importação</a>
     </nav>
@@ -184,6 +185,87 @@
         return "Custo Variável";
     }
 
+    function normalizarTexto(valor) {
+        if (valor === null || valor === undefined) return "";
+        return String(valor)
+            .replace(/\r/g, "")
+            .replace(/\u00a0/g, " ")
+            .trim();
+    }
+
+    function normalizarTextoComparacao(valor) {
+        if (valor === null || valor === undefined) return "";
+
+        let texto = String(valor)
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .toLowerCase()
+            .replace(/[^a-z0-9]/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim();
+
+        texto = texto.replace(/(.)\1+/g, '$1');
+
+        if (texto === 'cellular') texto = 'celular';
+
+        return texto;
+    }
+
+    function separarColunas(linha) {
+        const texto = normalizarTexto(linha);
+        if (!texto) return [];
+
+        const padroes = [
+            /\t/,
+            /;/,
+            /,(?=(?:[^"]*"[^"]*")*[^"]*$)/
+        ];
+
+        let colunas = [texto];
+
+        for (const padrao of padroes) {
+            const partes = texto.split(padrao);
+            if (partes.length > 1) {
+                colunas = partes.map(item => item.replace(/^"|"$/g, "").trim());
+                break;
+            }
+        }
+
+        return colunas;
+    }
+
+    function ehLinhaCabecalho(colunas) {
+        if (!colunas || colunas.length === 0) return false;
+
+        const texto = colunas
+            .map(c => (c || "").toLowerCase())
+            .join(" ");
+
+        return texto.includes("data") &&
+            (texto.includes("descricao") || texto.includes("descrição")) &&
+            texto.includes("valor");
+    }
+
+    function extrairLinhasPlanilha(conteudo) {
+        if (!conteudo || !conteudo.trim()) return [];
+
+        const linhas = conteudo
+            .split(/\n+/)
+            .map(linha => normalizarTexto(linha))
+            .filter(linha => linha.length > 0);
+
+        const linhasProcessadas = [];
+
+        linhas.forEach((linha) => {
+            const colunas = separarColunas(linha);
+            if (colunas.length === 0) return;
+            if (ehLinhaCabecalho(colunas)) return;
+            linhasProcessadas.push(colunas);
+        });
+
+        return linhasProcessadas;
+    }
+
     /** Lê o texto, valida duplicatas no Firestore e monta a tabela de pré-visualização */
     async function gerarPreVisualizacao() {
         const conteudo = txtArea.value.trim();
@@ -198,22 +280,7 @@
         tbodyPreview.innerHTML = "";
         lancamentosValidosParaSalvar = [];
 
-        const linhas = conteudo.split("\n");
-        let linhasParaProcessar = [];
-
-        linhas.forEach(linha => {
-            if (linha.trim() !== "") {
-                const colunas = linha.split("\t");
-                linhasParaProcessar.push(colunas);
-            }
-        });
-
-        if (linhasParaProcessar.length > 0) {
-            const primeiraDesc = linhasParaProcessar[0][0] || "";
-            if (primeiraDesc.toLowerCase().includes("data")) {
-                linhasParaProcessar.shift(); // Ignora cabeçalho
-            }
-        }
+        const linhasParaProcessar = extrairLinhasPlanilha(conteudo);
 
         if (linhasParaProcessar.length === 0) {
         showOperationBanner("Nenhum dado válido encontrado para estruturar a tabela.", 'error', 5000);
@@ -222,69 +289,189 @@
             return;
         }
 
-        // Passa por cada linha gerando a checagem no Firestore
-        for (let i = 0; i < linhasParaProcessar.length; i++) {
-            const col = linhasParaProcessar[i];
+        // Validação por campo e checagem de duplicidade
+        function parseValorRaw(valorRaw) {
+            let v = (valorRaw || "").toString();
+            v = v.replace(/R\$/g, "").trim();
+            v = v.replace(/\./g, "").replace(/,/g, ".");
+            const n = parseFloat(v);
+            return isNaN(n) ? null : n;
+        }
 
-            let valorRaw = col[2] || "0";
-            valorRaw = valorRaw.replace("R$", "").trim();
-            valorRaw = valorRaw.replace(/\./g, "").replace(",", ".");
-            const valorNumerico = parseFloat(valorRaw) || 0;
+        function isValidDateString(s) {
+            if (!s) return false;
+            const t = s.trim();
+            // Aceita dd/mm/yyyy ou yyyy-mm-dd
+            const ddmmyyyy = /^\d{1,2}\/\d{1,2}\/\d{2,4}$/;
+            const yyyymmdd = /^\d{4}-\d{1,2}-\d{1,2}$/;
+            if (ddmmyyyy.test(t)) {
+                const parts = t.split('/').map(p => parseInt(p, 10));
+                const d = parts[0], m = parts[1], y = parts[2];
+                const dt = new Date(y, m - 1, d);
+                return dt && dt.getFullYear() === (y < 100 ? 2000 + y : y) && dt.getMonth() === (m - 1) && dt.getDate() === d;
+            }
+            if (yyyymmdd.test(t)) {
+                const parts = t.split('-').map(p => parseInt(p, 10));
+                const y = parts[0], m = parts[1], d = parts[2];
+                const dt = new Date(y, m - 1, d);
+                return dt && dt.getFullYear() === y && dt.getMonth() === (m - 1) && dt.getDate() === d;
+            }
+            // Tentativa de parse com Date
+            const parsed = Date.parse(t);
+            return !isNaN(parsed);
+        }
 
-            const categoria = col[3] ? col[3].trim() : "Sem categoria";
+        function validarLancamento(col) {
+            const raw = col || [];
+            const dataRaw = raw[0] ? raw[0].trim() : "";
+            const descricaoRaw = raw[1] ? raw[1].trim() : "";
+            const valorRaw = raw[2] ? raw[2].trim() : "";
+            const categoriaRaw = raw[3] ? raw[3].trim() : "";
+            const contaOrigemRaw = raw[4] ? raw[4].trim() : "";
+            const contaDestinoRaw = raw[5] ? raw[5].trim() : "";
+            const statusRaw = raw[6] ? raw[6].trim() : "";
+            const movimentacaoRaw = raw[7] ? raw[7].trim() : "";
+            const mesRaw = raw[8] ? raw[8].trim() : "";
+
+            const erros = [];
+            // Data
+            if (!dataRaw || !isValidDateString(dataRaw)) {
+                erros.push('Data inválida ou ausente');
+            }
+
+            // Descrição
+            if (!descricaoRaw) {
+                erros.push('Descrição ausente');
+            }
+
+            // Valor
+            const valorNumerico = parseValorRaw(valorRaw);
+            if (valorNumerico === null) {
+                erros.push('Valor inválido');
+            }
+
+            const categoria = categoriaRaw || 'Sem categoria';
+            const contaOrigem = contaOrigemRaw || 'Carteira';
+            const contaDestino = contaDestinoRaw || 'Nenhuma (Uso Geral)';
+            const status = statusRaw || 'Pago';
+            const movimentacao = movimentacaoRaw || 'Despesa';
+
             const subcategoriaMapeada = mapearSubcategoriaAutomatica(categoria);
 
-            const novoDocumento = {
-                data: col[0] ? col[0].trim() : "",
-                descricao: col[1] ? col[1].trim() : "Sem descrição",
-                valor: valorNumerico,
+            const lancamento = {
+                data: dataRaw,
+                descricao: descricaoRaw || 'Sem descrição',
+                valor: valorNumerico === null ? 0 : valorNumerico,
                 categoriaOriginal: categoria,
-                contaOrigem: col[4] ? col[4].trim() : "Carteira",
-                contaDestino: col[5] ? col[5].trim() : "Nenhuma (Uso Geral)",
-                status: col[6] ? col[6].trim() : "Pago",
-                movimentacao: col[7] ? col[7].trim() : "Despesa",
-                mes: col[8] ? col[8].trim().toUpperCase() : "",
+                contaOrigem: contaOrigem,
+                contaDestino: contaDestino,
+                status: status,
+                movimentacao: movimentacao,
+                mes: mesRaw ? mesRaw.toUpperCase() : '',
                 subcategoria: subcategoriaMapeada
             };
 
-            let existeNoBanco = false;
+            // Detectar se houve ajuste automático (apenas semântico: categoria/conta/status/movimentacao)
+            const ajustes = [];
+            if (categoria !== categoriaRaw) ajustes.push('Categoria');
+            if (contaOrigem !== contaOrigemRaw) ajustes.push('Conta origem');
+            if (contaDestino !== contaDestinoRaw) ajustes.push('Conta destino');
+            if (status !== statusRaw) ajustes.push('Status');
+            if (movimentacao !== movimentacaoRaw) ajustes.push('Movimentação');
+            // Não considerar diferenças apenas de formatação numérica como ajuste
 
-            try {
-                // Valida se as principais propriedades combinadas já existem no Firestore
-                const snapshot = await db.collection("lancamentos")
-                    .where("data", "==", novoDocumento.data)
-                    .where("descricao", "==", novoDocumento.descricao)
-                    .where("valor", "==", novoDocumento.valor)
-                    .where("contaOrigem", "==", novoDocumento.contaOrigem)
-                    .where("movimentacao", "==", novoDocumento.movimentacao)
-                    .get();
+            const ajustado = ajustes.length > 0;
 
-                if (!snapshot.empty) {
-                    existeNoBanco = true;
-                }
-            } catch (err) {
-                console.error("Erro na validação de duplicidade: ", err);
-            }
+            return { lancamento, erros, ajustado, ajustes, originalRaw: raw };
+        }
+        function escapeHtml(s) {
+            return String(s)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        for (let i = 0; i < linhasParaProcessar.length; i++) {
+            const col = linhasParaProcessar[i];
+
+            const { lancamento: novoDocumento, erros, ajustado, ajustes, originalRaw } = validarLancamento(col);
 
             const tr = document.createElement('tr');
+            const descricaoNormalizada = normalizarTextoComparacao(novoDocumento.descricao);
+
+            if (erros && erros.length > 0) {
+                const originalTooltip = escapeHtml((originalRaw || []).map(x => x || '').join(' | '));
+                tr.className = 'row-invalida';
+                tr.innerHTML = `
+                    <td>${novoDocumento.data}</td>
+                    <td>${novoDocumento.descricao}</td>
+                    <td>${novoDocumento.valor !== undefined ? 'R$ ' + novoDocumento.valor.toLocaleString('pt-BR', {minimumFractionDigits: 2}) : ''}</td>
+                    <td>${novoDocumento.categoriaOriginal}</td>
+                    <td title="Original: ${originalTooltip}"><strong>Inválido:</strong> ${erros.join('; ')}</td>
+                `;
+                tbodyPreview.appendChild(tr);
+                continue; // não checar duplicidade
+            }
+
+            // Se válido, checar duplicidade no Firestore usando descrição normalizada
+            let existeNoBanco = false;
+            try {
+                const snapshot = await db.collection("lancamentos").get();
+
+                snapshot.forEach((doc) => {
+                    const d = doc.data();
+                    const descricaoNormalizadaBanco = normalizarTextoComparacao(d.descricao || '');
+                    const mesmoValor = Number(d.valor) === Number(novoDocumento.valor);
+                    const mesmaData = String(d.data || '').trim() === String(novoDocumento.data || '').trim();
+                    const mesmaDescricao = descricaoNormalizadaBanco === descricaoNormalizada;
+                    const mesmaContaOrigem = String(d.contaOrigem || '').trim() === String(novoDocumento.contaOrigem || '').trim();
+                    const mesmaMovimentacao = String(d.movimentacao || '').trim() === String(novoDocumento.movimentacao || '').trim();
+
+                    if (mesmaData && mesmaDescricao && mesmoValor && mesmaContaOrigem && mesmaMovimentacao) {
+                        existeNoBanco = true;
+                    }
+                });
+
+                if (!existeNoBanco) {
+                    snapshot.forEach((doc) => {
+                        const d = doc.data();
+                        const descricaoNormalizadaBanco = normalizarTextoComparacao(d.descricao || '');
+                        const mesmoValor = Number(d.valor) === Number(novoDocumento.valor);
+                        const mesmaData = String(d.data || '').trim() === String(novoDocumento.data || '').trim();
+                        const mesmaDescricao = descricaoNormalizadaBanco === descricaoNormalizada;
+
+                        if (mesmaData && mesmaDescricao && mesmoValor) {
+                            existeNoBanco = true;
+                        }
+                    });
+                }
+            } catch (err) {
+                console.error('Erro na validação de duplicidade: ', err);
+            }
 
             if (existeNoBanco) {
+                const originalTooltip = escapeHtml((originalRaw || []).map(x => x || '').join(' | '));
                 tr.className = 'row-duplicada';
                 tr.innerHTML = `
                     <td>${novoDocumento.data}</td>
                     <td>${novoDocumento.descricao}</td>
                     <td>R$ ${novoDocumento.valor.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
                     <td>${novoDocumento.categoriaOriginal}</td>
-                    <td><strong>Já existe (Será Ignorado)</strong></td>
+                    <td title="Original: ${originalTooltip}"><strong>Já existe (Será Ignorado)</strong></td>
                 `;
             } else {
-                tr.className = 'row-valida';
+                // Mostrar ajustes semânticos quando houver
+                const originalTooltip = escapeHtml((originalRaw || []).map(x => x || '').join(' | '));
+                const statusText = (ajustes && ajustes.length) ? ('Ajustado automaticamente: ' + ajustes.join(', ')) : 'Novo registro';
+                tr.className = (ajustes && ajustes.length) ? 'row-ajustada' : 'row-valida';
                 tr.innerHTML = `
                     <td>${novoDocumento.data}</td>
                     <td>${novoDocumento.descricao}</td>
                     <td>R$ ${novoDocumento.valor.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
                     <td>${novoDocumento.categoriaOriginal}</td>
-                    <td> Novo registro</td>
+                    <td title="Original: ${originalTooltip}">${statusText}</td>
                 `;
                 lancamentosValidosParaSalvar.push(novoDocumento);
             }

@@ -65,6 +65,9 @@ function inicializarAuth() {
             if (typeof inicializarBusca === 'function') {
                 inicializarBusca();
             }
+            if (typeof renderizarOrcamentoMensal === 'function') {
+                renderizarOrcamentoMensal();
+            }
         } else {
             console.log("Aguardando login...");
 

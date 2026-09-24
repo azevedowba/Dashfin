@@ -682,6 +682,268 @@ function atualizarExibicaoFeed(contador, somaFiltrada, feedContainer, linhaInput
     }
 }
 
+function obterOrcamentoMensalPadrao() {
+    return {
+        "Celular": 220,
+        "Supermercado": 1200,
+        "Internet": 120,
+        "Combustível": 500,
+        "Condomínio": 900,
+        "Conta de Luz": 280,
+        "Conta de Agua": 220,
+        "Gás": 180,
+        "Restaurante": 500,
+        "Lazer": 400,
+        "Transporte": 350
+    };
+}
+
+function obterOrcamentoMensalConfigurado() {
+    const padrao = obterOrcamentoMensalPadrao();
+    const salvo = localStorage.getItem("dashfin_orcamento_mensal");
+
+    if (!salvo) return padrao;
+
+    try {
+        const parsed = JSON.parse(salvo);
+        return { ...padrao, ...parsed };
+    } catch (e) {
+        console.warn("Orçamento salvo inválido, usando valores padrão.", e);
+        return padrao;
+    }
+}
+
+function salvarOrcamentoMensal() {
+    if (!document.querySelector(".orcamento-input")) {
+        exibirBanner("Nenhum orçamento configurado para salvar.", "info", 3000);
+        return;
+    }
+
+    const orcamentoAtualizado = {};
+    document.querySelectorAll(".orcamento-input").forEach((input) => {
+        const categoria = input.dataset.categoria;
+        const valor = parseFloat(input.value);
+        if (categoria && !Number.isNaN(valor)) {
+            orcamentoAtualizado[categoria] = valor;
+        }
+    });
+
+    localStorage.setItem("dashfin_orcamento_mensal", JSON.stringify(orcamentoAtualizado));
+    exibirBanner("Orçamento salvo com sucesso!", "success", 4000);
+    renderizarOrcamentoMensal();
+}
+
+function obterPeriodoOrcamento() {
+    const filtroMes = document.getElementById("orcamentoMes") || document.getElementById("filtroMes");
+    const filtroAno = document.getElementById("orcamentoAno") || document.getElementById("filtroAno");
+    const hoje = new Date();
+
+    const mesAtual = MESES_NOMES[hoje.getMonth()];
+    const anoAtual = String(hoje.getFullYear());
+
+    const mesSelecionado = filtroMes && filtroMes.value && filtroMes.value !== "TODOS" ? filtroMes.value : mesAtual;
+    const anoSelecionado = filtroAno && filtroAno.value && filtroAno.value !== "TODOS" ? filtroAno.value : anoAtual;
+
+    const mesNormalizado = (mesSelecionado || mesAtual).toUpperCase();
+    const anoNormalizado = String(anoSelecionado || anoAtual);
+
+    return { mesSelecionado: mesNormalizado, anoSelecionado: anoNormalizado };
+}
+
+function obterTotalGastoCategoria(categoria, mes, ano) {
+    return todosLancamentosCache.reduce((total, item) => {
+        if (!item || !item.categoriaOriginal || item.categoriaOriginal !== categoria) return total;
+        if ((item.movimentacao || "").trim().toLowerCase() !== "despesa") return total;
+        if ((item.mes || "").toUpperCase() !== mes.toUpperCase()) return total;
+
+        const anoItem = String((item.data || "").split("/")[2] || "");
+        if (anoItem && anoItem !== String(ano)) return total;
+
+        return total + (Math.abs(parseFloat(item.valor)) || 0);
+    }, 0);
+}
+
+function renderizarOrcamentoMensal() {
+    const container = document.getElementById("orcamentoMensal");
+    if (!container) return;
+
+    const mesSelect = document.getElementById("orcamentoMes");
+    const anoSelect = document.getElementById("orcamentoAno");
+    if (mesSelect && !mesSelect.value) {
+        mesSelect.value = MESES_NOMES[new Date().getMonth()];
+    }
+    if (anoSelect && !anoSelect.value) {
+        anoSelect.value = String(new Date().getFullYear());
+    }
+
+    const orcamento = obterOrcamentoMensalConfigurado();
+    const { mesSelecionado, anoSelecionado } = obterPeriodoOrcamento();
+    const categorias = Object.keys(orcamento).sort((a, b) => a.localeCompare(b));
+
+    const categoriasDetalhadas = categorias.map((categoria) => {
+        const limite = Number(orcamento[categoria]) || 0;
+        const gasto = obterTotalGastoCategoria(categoria, mesSelecionado, anoSelecionado);
+        const percentual = limite > 0 ? Math.min((gasto / limite) * 100, 100) : 0;
+        const restante = limite - gasto;
+        const alerta = gasto > limite;
+        const percentualMeta = limite > 0 ? Math.round((gasto / limite) * 100) : 0;
+
+        let statusText = 'Dentro do limite';
+        if (alerta) statusText = 'Acima do limite';
+        else if (percentualMeta >= 75) statusText = 'Perto do limite';
+
+        let dica = 'Ainda dá para gastar com consciência.';
+        if (alerta) {
+            dica = `Você excedeu a meta em R$ ${Math.abs(restante).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}. Revise esse gasto.`;
+        } else if (percentualMeta >= 75) {
+            dica = `Você já usou ${percentualMeta}% da meta. Fique atento ao restante do mês.`;
+        } else if (restante > 0) {
+            dica = `Ainda restam R$ ${restante.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} para essa categoria.`;
+        }
+
+        return {
+            categoria,
+            limite,
+            gasto,
+            restante,
+            alerta,
+            percentual,
+            statusText,
+            dica
+        };
+    });
+
+    const totalLimite = categoriasDetalhadas.reduce((sum, item) => sum + item.limite, 0);
+    const totalGasto = categoriasDetalhadas.reduce((sum, item) => sum + item.gasto, 0);
+    const restanteTotal = totalLimite - totalGasto;
+    const percentualTotal = totalLimite > 0 ? Math.min((totalGasto / totalLimite) * 100, 100) : 0;
+    const categoriasEmAlerta = categoriasDetalhadas.filter((item) => item.alerta || item.percentual >= 75);
+    const categoriaCritica = categoriasDetalhadas
+        .slice()
+        .sort((a, b) => (b.gasto / (b.limite || 1)) - (a.gasto / (a.limite || 1)))[0];
+
+    const mesAnterior = (() => {
+        const meses = MESES_NOMES;
+        const indexAtual = meses.indexOf(mesSelecionado.toUpperCase());
+        const anoAnterior = indexAtual === 0 ? Number(anoSelecionado) - 1 : Number(anoSelecionado);
+        const mesAnteriorNome = indexAtual === 0 ? meses[11] : meses[indexAtual - 1];
+        return { mesAnteriorNome, anoAnterior };
+    })();
+
+    const totalMesAnterior = categorias.reduce((sum, categoria) => {
+        const valor = obterTotalGastoCategoria(categoria, mesAnterior.mesAnteriorNome, mesAnterior.anoAnterior);
+        return sum + valor;
+    }, 0);
+
+    const variacaoMes = totalGasto - totalMesAnterior;
+    const variacaoDirecao = variacaoMes > 0 ? 'acima' : variacaoMes < 0 ? 'abaixo' : 'igual';
+    const variacaoTexto = `Comparado ao mês anterior (${mesAnterior.mesAnteriorNome} / ${mesAnterior.anoAnterior}), você está ${variacaoDirecao} em R$ ${Math.abs(variacaoMes).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}.`;
+
+    const categoriasSugeridas = categoriasDetalhadas
+        .filter((item) => item.alerta || item.percentual >= 75)
+        .sort((a, b) => (b.gasto / (b.limite || 1)) - (a.gasto / (a.limite || 1)))
+        .slice(0, 3)
+        .map((item) => `
+            <li>
+                <strong>${item.categoria}</strong> — ${item.alerta ? 'acima da meta' : 'próxima do limite'}.
+                Gasto atual: R$ ${item.gasto.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}.
+            </li>
+        `).join("");
+
+    const sugestoesLista = categoriasSugeridas || '<li>Sem alertas neste período. Mantenha o controle e evite gastos impulsivos.</li>';
+
+    const valorDisponivel = Math.max(restanteTotal, 0);
+    const valorExcedido = Math.max(Math.abs(restanteTotal), 0);
+    const mensagemDecisao = restanteTotal >= 0
+        ? `Você ainda tem R$ ${valorDisponivel.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} disponíveis para o mês. ${categoriaCritica ? `Foco em ${categoriaCritica.categoria}: ela é a categoria mais sensível no momento.` : 'Mantenha o ritmo e evite novos gastos impulsivos.'}`
+        : `O mês está acima da meta em R$ ${valorExcedido.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}. Ajuste os gastos de ${categoriaCritica ? categoriaCritica.categoria : 'algumas categorias'} para recuperar o equilíbrio.`;
+
+    const listaLinhas = categoriasDetalhadas.map((item) => `
+        <div class="orcamento-item ${item.alerta ? 'alerta' : ''}">
+            <div class="orcamento-header">
+                <strong>${item.categoria}</strong>
+                <span class="orcamento-status ${item.alerta ? 'status-alerta' : item.percentual >= 75 ? 'status-warning' : 'status-ok'}">
+                    ${item.statusText}
+                </span>
+            </div>
+            <div class="orcamento-main">
+                <div class="orcamento-valores">
+                    <span>Gasto: <strong>R$ ${item.gasto.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></span>
+                    <span>Meta: <strong>R$ ${item.limite.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></span>
+                </div>
+                <input
+                    class="orcamento-input"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value="${item.limite}"
+                    data-categoria="${item.categoria}"
+                    aria-label="Orçamento para ${item.categoria}"
+                >
+            </div>
+            <div class="orcamento-bar">
+                <span style="width: ${item.percentual}%"></span>
+            </div>
+            <div class="orcamento-meta">
+                <span>${item.restante >= 0 ? 'Restante' : 'Excedido'}: <strong>R$ ${Math.abs(item.restante).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></span>
+            </div>
+            <div class="orcamento-dica">${item.dica}</div>
+        </div>
+    `).join("");
+
+    const alertaLista = categoriasEmAlerta.length > 0
+        ? categoriasEmAlerta.map((item) => `<li>${item.categoria}: ${item.alerta ? 'acima da meta' : 'próxima do limite'} (${item.gasto.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / ${item.limite.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })})</li>`).join("")
+        : '<li>Nenhuma categoria está em alerta neste período.</li>';
+
+    const resumoEstado = restanteTotal >= 0 ? 'positivo' : 'negativo';
+    const resumoLabel = restanteTotal >= 0 ? 'Disponível' : 'Excedido';
+
+    container.innerHTML = `
+        <div class="orcamento-dashboard">
+            <div class="orcamento-resumo">
+                <div>
+                    <span class="orcamento-label">Gasto total</span>
+                    <strong>R$ ${totalGasto.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
+                </div>
+                <div>
+                    <span class="orcamento-label">Meta do mês</span>
+                    <strong>R$ ${totalLimite.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
+                </div>
+                <div class="${resumoEstado}">
+                    <span class="orcamento-label">${resumoLabel}</span>
+                    <strong>R$ ${Math.abs(restanteTotal).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
+                </div>
+            </div>
+
+            <div class="orcamento-insights">
+                <div class="orcamento-insight-card">
+                    <div class="insight-title">Resumo do mês</div>
+                    <div class="insight-value">${Math.round(percentualTotal)}% usado</div>
+                    <p>${mensagemDecisao}</p>
+                </div>
+                <div class="orcamento-insight-card">
+                    <div class="insight-title">Comparativo</div>
+                    <div class="insight-value ${variacaoMes >= 0 ? 'up' : 'down'}">${variacaoMes >= 0 ? '+' : '-'}R$ ${Math.abs(variacaoMes).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+                    <p>${variacaoTexto}</p>
+                </div>
+            </div>
+
+            <div class="orcamento-alertas">
+                <div class="alertas-header">Atenção</div>
+                <ul>${alertaLista}</ul>
+            </div>
+
+            <div class="orcamento-acao">
+                <div class="alertas-header">O que ajustar agora</div>
+                <ul>${sugestoesLista}</ul>
+            </div>
+
+            <div class="orcamento-lista">${listaLinhas}</div>
+            <button class="btn-salvar-orcamento" type="button" onclick="salvarOrcamentoMensal()">Salvar orçamento</button>
+        </div>
+    `;
+}
+
 function iniciarEscutaRealtime() {
     preencherInputsSaldos();
     db.collection("lancamentos").onSnapshot((snapshot) => {
@@ -703,6 +965,7 @@ function iniciarEscutaRealtime() {
 
         calcularSaldosContasGlobais();
         renderizarFeedFiltrado();
+        renderizarOrcamentoMensal();
     });
 }
 
@@ -768,6 +1031,7 @@ function inicializarEventosDashboard() {
             elem.addEventListener("change", () => {
                 salvarFiltrosIndex();
                 renderizarFeedFiltrado();
+                renderizarOrcamentoMensal();
             });
         }
     });

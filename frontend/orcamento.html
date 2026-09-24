@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashfin - Orçamento</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/common.css">
+    <link rel="stylesheet" href="css/orcamento.css">
+</head>
+<body>
+
+    <div id="loginGate" class="login-gate">
+        <div class="login-gate-box">
+            <h1>Dashfin - Sistema Financeiro</h1>
+            <p>Faça login com sua conta Google para acessar o orçamento mensal.</p>
+            <button id="btn-login" class="btn-login-gate">Entrar com Google</button>
+            <div id="loginGateErro" class="login-gate-erro"></div>
+        </div>
+    </div>
+
+    <div id="appContent">
+        <header class="main-header">
+            <div class="brand">
+                <span class="brand-mark">D</span>
+                <span class="logo">Dashfin</span>
+            </div>
+
+            <nav aria-label="Navegação principal">
+                <a href="index.html" class="nav-link">Dashboard &amp; Histórico</a>
+                <a href="orcamento.html" class="nav-link active">Orçamento</a>
+                <a href="graficos.html" class="nav-link">Análise &amp; Gráficos</a>
+                <a href="operacoes.html" class="nav-link">Lançamentos &amp; Importação</a>
+            </nav>
+
+            <div class="header-actions">
+                <button id="btn-logout" class="btn-header-logout" type="button">Sair</button>
+            </div>
+        </header>
+
+        <main class="main-layout orcamento-page-layout">
+            <section class="page-header-card">
+                <div class="page-header-copy">
+                    <p class="eyebrow">Planejamento</p>
+                    <h1>Orçamento Mensal</h1>
+                </div>
+                <p class="intro">Compare o gasto real por categoria com o limite planejado e acompanhe se o mês está dentro do orçamento.</p>
+            </section>
+
+            <section class="card orcamento-panel">
+                <div class="card-header">
+                    <div>
+                        <h2>Controle por categoria</h2>
+                    </div>
+                    <div class="orcamento-filtros">
+                        <label>
+                            Mês
+                            <select id="orcamentoMes" onchange="renderizarOrcamentoMensal()">
+                                <option value="JANEIRO">Janeiro</option>
+                                <option value="FEVEREIRO">Fevereiro</option>
+                                <option value="MARÇO">Março</option>
+                                <option value="ABRIL">Abril</option>
+                                <option value="MAIO">Maio</option>
+                                <option value="JUNHO">Junho</option>
+                                <option value="JULHO">Julho</option>
+                                <option value="AGOSTO">Agosto</option>
+                                <option value="SETEMBRO">Setembro</option>
+                                <option value="OUTUBRO">Outubro</option>
+                                <option value="NOVEMBRO">Novembro</option>
+                                <option value="DEZEMBRO">Dezembro</option>
+                            </select>
+                        </label>
+                        <label>
+                            Ano
+                            <select id="orcamentoAno" onchange="renderizarOrcamentoMensal()">
+                                <option value="2025">2025</option>
+                                <option value="2026" selected>2026</option>
+                            </select>
+                        </label>
+                    </div>
+                </div>
+                <div id="orcamentoMensal"></div>
+            </section>
+        </main>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="js/firebase-config.js"></script>
+    <script src="js/app-constants.js"></script>
+    <script src="js/app-auth.js"></script>
+    <script src="js/app-dashboard.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
