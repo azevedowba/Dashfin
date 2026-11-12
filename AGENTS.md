@@ -1,34 +1,40 @@
 # Instruções para Agentes de IA do Dashfin
 
 ## Visão geral do projeto
-- Aplicação web estática para dashboard financeiro e análise de dados.
+- Aplicação web estática para dashboard financeiro pessoal e gestão de orçamento.
 - Hospedada no Firebase Hosting e implantada via GitHub Actions.
-- Não há sistema de build, gerenciador de pacotes ou código backend neste repositório.
 - Frontend implementado em HTML, CSS e JavaScript puros.
-- Texto e rótulos da interface estão em Português do Brasil.
+- A lógica do sistema foi inspirada em uma planilha de controle financeiro, mas evoluiu para uma interface premium e moderna.
+- Texto e rótulos da interface devem permanecer em Português do Brasil.
 
-## Arquivos principais
-- `index.html` — página principal do dashboard e histórico.
-- `graficos.html` — página de gráficos e análise.
-- `operacoes.html` — página de lançamentos, importação e revisão de dados.
-- `firebase-config.js` — inicialização do Firebase e configuração do Firestore.
-- `firebase.json` — configuração de hospedagem do Firebase e regra de rewrite.
-- `.github/workflows/firebase-hosting-pull-request.yml` — deploy de preview para pull requests.
-- `.github/workflows/firebase-hosting-merge.yml` — deploy para o canal live ao fazer merge na branch `main`.
+## Estrutura atual
+- `frontend/index.html` — dashboard principal e visão geral do patrimônio/saldos.
+- `frontend/orcamento.html` — planejamento mensal e acompanhamento do orçamento.
+- `frontend/graficos.html` — gráficos e análise de evolução financeira.
+- `frontend/operacoes.html` — importação, revisão e registro de lançamentos.
+- `frontend/css/` — estilos globais e específicos por página.
+- `frontend/js/app-dashboard.js` — regras do dashboard, orçamentos, saldos e consolidação.
+- `frontend/js/app-constants.js` — configuração e dados de referência do sistema.
+- `frontend/js/app-auth.js` — autenticação Firebase.
+- `firebase.json` — configuração do hosting do Firebase.
+- `firestore.rules` — regras de segurança do Firestore.
+- `.github/workflows/` — deploy automático para preview e produção.
 
-## Convenções de trabalho
-- Mantenha as alterações alinhadas ao estilo visual existente e às variáveis CSS das páginas atuais.
-- Use o mesmo estilo de linguagem em Português ao estender rótulos de UI ou mensagens.
-- Prefira mudanças mínimas e preserve a estrutura atual da página.
-- Como o app é estático, não introduza ferramentas de build Node/npm a menos que o usuário peça explicitamente.
-- Evite modificar referências a contas de serviço do Firebase ou segredos de CI; esses são gerenciados externamente.
+## Diretrizes de trabalho
+- Mantenha o visual consistente com a linha premium já adotada: shell lateral, paleta em cinza/verde/dourado, cards, contraste e organização clara.
+- Preserve a lógica financeira original e evite mudanças estruturais que descaracterizem o modelo da planilha inspiradora.
+- Prefira mudanças mínimas e de alto valor, sem introduzir redundâncias ou blocos de código sem uso.
+- Como o app é estático, não adicione build system, bundler ou dependências extras sem necessidade explícita.
+- Evite alterar configurações sensíveis do Firebase ou segredos de CI.
 
 ## Orientação para agentes de IA
-- Não assuma que existe um sistema de módulos JavaScript; o app usa padrões simples e scripts inline.
-- Ao adicionar comportamento, prefira APIs DOM nativas e lógica leve consistente com o código existente.
-- Ao corrigir problemas, inspeccione a página HTML relevante primeiro, pois não há estrutura JS separada.
-- Mantenha valores públicos de configuração em `firebase-config.js` inalterados, a menos que o usuário solicite uma atualização do Firebase.
+- Não assuma que o repositório tem arquitetura em módulos JavaScript; a app segue padrão simples e direto.
+- Ao alterar comportamento, priorize a lógica em `frontend/js/` e mantenha a interface alinhada ao padrão visual atual.
+- Sempre verifique a página HTML relevante antes de mexer na estrutura da tela.
+- Mantenha os valores públicos de configuração em `firebase-config.js` inalterados, salvo pedido explícito.
+- Continue valorizando a clareza, a manutenção e a legibilidade do código.
 
 ## Observações
-- O repositório contém apenas páginas estáticas com estilo embutido e não possui testes.
-- O `README.md` é minimalista e não fornece instruções de setup ou uso além da identidade do projeto.
+- O projeto continua sendo uma aplicação estática de alto impacto visual, com foco em fácil uso e gestão financeira pessoal.
+- O README principal deve refletir o estado atual do app e não apenas a estrutura mínima do repositório.
+- Qualquer melhoria deve respeitar o equilíbrio entre negócio financeiro e experiência premium do produto.
