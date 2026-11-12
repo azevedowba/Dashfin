@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="js/app-theme.js"></script>
     <title>Dashfin - Orçamento</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -15,75 +16,100 @@
     <div id="loginGate" class="login-gate">
         <div class="login-gate-box">
             <h1>Dashfin - Sistema Financeiro</h1>
-            <p>Faça login com sua conta Google para acessar o orçamento mensal.</p>
+            <p>Faça login com sua conta Google para acessar o orçamento doméstico.</p>
             <button id="btn-login" class="btn-login-gate">Entrar com Google</button>
             <div id="loginGateErro" class="login-gate-erro"></div>
         </div>
     </div>
 
     <div id="appContent">
-        <header class="main-header">
-            <div class="brand">
-                <span class="brand-mark">D</span>
-                <span class="logo">Dashfin</span>
-            </div>
-
-            <nav aria-label="Navegação principal">
-                <a href="index.html" class="nav-link">Dashboard &amp; Histórico</a>
-                <a href="orcamento.html" class="nav-link active">Orçamento</a>
-                <a href="graficos.html" class="nav-link">Análise &amp; Gráficos</a>
-                <a href="operacoes.html" class="nav-link">Lançamentos &amp; Importação</a>
-            </nav>
-
-            <div class="header-actions">
-                <button id="btn-logout" class="btn-header-logout" type="button">Sair</button>
-            </div>
-        </header>
-
-        <main class="main-layout orcamento-page-layout">
-            <section class="page-header-card">
-                <div class="page-header-copy">
-                    <p class="eyebrow">Planejamento</p>
-                    <h1>Orçamento Mensal</h1>
+        <div class="finance-shell">
+            <aside class="finance-sidebar">
+                <div class="finance-brand">
+                    <span class="finance-badge">D</span>
+                    <span class="finance-brand-text">Dashfin</span>
                 </div>
-                <p class="intro">Compare o gasto real por categoria com o limite planejado e acompanhe se o mês está dentro do orçamento.</p>
-            </section>
 
-            <section class="card orcamento-panel">
-                <div class="card-header">
+                <nav class="finance-nav" aria-label="Navegação principal">
+                    <a class="finance-nav-item" href="index.html">Dashboard &amp; Histórico</a>
+                    <a class="finance-nav-item active" href="orcamento.html">Orçamento doméstico</a>
+                    <a class="finance-nav-item" href="graficos.html">Análise &amp; Gráficos</a>
+                    <a class="finance-nav-item" href="operacoes.html">Lançamentos &amp; Importação</a>
+                </nav>
+
+                <div class="finance-side-footer">
+                    <button type="button" class="finance-btn-light" id="btnAbrirConfiguracao">Configuração</button>
+                </div>
+            </aside>
+
+            <main class="finance-main">
+                <header class="finance-page-header">
                     <div>
-                        <h2>Controle por categoria</h2>
+                        <p class="finance-kicker">Planejamento financeiro</p>
+                        <h1>Orçamento doméstico</h1>
                     </div>
-                    <div class="orcamento-filtros">
-                        <label>
-                            Mês
-                            <select id="orcamentoMes" onchange="renderizarOrcamentoMensal()">
-                                <option value="JANEIRO">Janeiro</option>
-                                <option value="FEVEREIRO">Fevereiro</option>
-                                <option value="MARÇO">Março</option>
-                                <option value="ABRIL">Abril</option>
-                                <option value="MAIO">Maio</option>
-                                <option value="JUNHO">Junho</option>
-                                <option value="JULHO">Julho</option>
-                                <option value="AGOSTO">Agosto</option>
-                                <option value="SETEMBRO">Setembro</option>
-                                <option value="OUTUBRO">Outubro</option>
-                                <option value="NOVEMBRO">Novembro</option>
-                                <option value="DEZEMBRO">Dezembro</option>
-                            </select>
-                        </label>
-                        <label>
-                            Ano
-                            <select id="orcamentoAno" onchange="renderizarOrcamentoMensal()">
-                                <option value="2025">2025</option>
-                                <option value="2026" selected>2026</option>
-                            </select>
-                        </label>
+                    <div class="finance-salary-card">
+                        <span>Seu salário</span>
+                        <strong id="valorSalarioResumo">R$ 0,00</strong>
                     </div>
+                </header>
+
+                <section id="orcamentoMensal" aria-live="polite"></section>
+            </main>
+        </div>
+    </div>
+
+    <div id="configModal" class="finance-modal hidden" aria-hidden="true">
+        <div class="finance-modal-backdrop" data-close-config="true"></div>
+        <div class="finance-modal-panel" role="dialog" aria-modal="true" aria-labelledby="configTitulo">
+            <div class="finance-modal-header">
+                <h2 id="configTitulo">Configuração do sistema</h2>
+                <button type="button" class="finance-close-btn" id="btnFecharConfiguracao" aria-label="Fechar configuração">×</button>
+            </div>
+
+            <div class="finance-config-grid">
+                <div class="finance-config-card">
+                    <h3>Saldos iniciais</h3>
+                    <label>
+                        Banrisul
+                        <input type="number" step="0.01" id="initBanrisul" value="18935.20">
+                    </label>
+                    <label>
+                        Nubank
+                        <input type="number" step="0.01" id="initNubank" value="-2405.18">
+                    </label>
+                    <label>
+                        Vale Alimentação
+                        <input type="number" step="0.01" id="initValeAlim" value="779.83">
+                    </label>
+                    <label>
+                        Vale Refeição
+                        <input type="number" step="0.01" id="initValeRef" value="71.58">
+                    </label>
                 </div>
-                <div id="orcamentoMensal"></div>
-            </section>
-        </main>
+
+                <div class="finance-config-card">
+                    <h3>Parâmetros do orçamento</h3>
+                    <label>
+                        Mês atual
+                        <select id="configMesAtual"></select>
+                    </label>
+                    <label>
+                        Ano atual
+                        <select id="configAnoAtual"></select>
+                    </label>
+                    <label>
+                        Saldo de referência do mês
+                        <input type="number" step="0.01" id="configSaldoReferencia" value="0">
+                    </label>
+                </div>
+            </div>
+
+            <div class="finance-modal-actions">
+                <button type="button" class="finance-btn-secondary" id="btnResetConfig">Resetar</button>
+                <button type="button" class="finance-btn-primary" id="btnSalvarConfiguracao">Salvar ajustes</button>
+            </div>
+        </div>
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>

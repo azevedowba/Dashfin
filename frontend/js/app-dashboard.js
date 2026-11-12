@@ -157,7 +157,7 @@ function criarDocumentoDeLancamento(desc, valor, dataRaw, mov, status, contaOrig
         contaDestino: contaDestino,
         categoriaOriginal: category,
         subcategoria: subcat,
-        macroCategoriaAUVP: subcat
+        macroCategoriaPrincipal: subcat
     };
 }
 
@@ -610,7 +610,7 @@ function criarElementoLancamento(item) {
     const isReceita = movimentacao === "receita";
     const isTransferencia = movimentacao === "transferência" || movimentacao === "transferencia";
     const isPago = (item.status || "").trim().toLowerCase() === "pago";
-    const subcategoriaExibida = item.subcategoria || item.macroCategoriaAUVP || 'Custo Variável';
+    const subcategoriaExibida = item.subcategoria || item.macroCategoriaPrincipal || 'Custo Variável';
     const valorNumerico = Math.abs(parseFloat(item.valor)) || 0;
 
     let classeItem = 'item-despesa';
@@ -763,185 +763,372 @@ function obterTotalGastoCategoria(categoria, mes, ano) {
     }, 0);
 }
 
+function getCategoriasPadraoOrcamento() {
+    return [
+        { nome: "Custos fixos", valor: 4500, cor: "#5ca9eb" },
+        { nome: "Conforto", valor: 2500, cor: "#59c3a8" },
+        { nome: "Metas", valor: 1200, cor: "#f0d37b" },
+        { nome: "Prazeres", valor: 900, cor: "#8ec5ff" },
+        { nome: "Liberdade financeira", valor: 2000, cor: "#9ad9b5" },
+        { nome: "Conectividade", valor: 500, cor: "#b7bfc9" }
+    ];
+}
+
+function obterResumoSaldosPorConta() {
+    const saldos = obterSaldosIniciaisConfigurados();
+    const contas = {
+        "Banrisul": { inicial: saldos.banrisul, atual: saldos.banrisul, nome: "Banrisul" },
+        "Cartão Nubank": { inicial: saldos.nubank, atual: saldos.nubank, nome: "Cartão Nubank" },
+        "Cartão XP": { inicial: 0, atual: 0, nome: "Cartão XP" },
+        "Carteira": { inicial: 0, atual: 0, nome: "Carteira" },
+        "Vale Alimentação": { inicial: saldos.valealim, atual: saldos.valealim, nome: "Vale Alimentação" },
+        "Vale Refeição": { inicial: saldos.valeref, atual: saldos.valeref, nome: "Vale Refeição" }
+    };
+
+    todosLancamentosCache.forEach((item) => {
+        const origem = (item.contaOrigem || '').trim();
+        const destino = (item.contaDestino || '').trim();
+        const valor = Number(item.valor) || 0;
+        const mov = (item.movimentacao || '').trim().toLowerCase();
+        const abs = Math.abs(valor);
+
+        if (mov === 'receita') {
+            if (contas[origem]) contas[origem].atual += abs;
+            return;
+        }
+
+        if (mov === 'despesa') {
+            if (contas[origem]) contas[origem].atual -= abs;
+            return;
+        }
+
+        if (mov === 'transferência' || mov === 'transferencia') {
+            if (contas[origem]) contas[origem].atual -= abs;
+            if (contas[destino]) contas[destino].atual += abs;
+        }
+    });
+
+    Object.keys(contas).forEach((conta) => {
+        contas[conta].variacao = contas[conta].atual - contas[conta].inicial;
+    });
+
+    return Object.values(contas).filter((conta) => conta.nome);
+}
+
+function obterConsolidacaoPeriodo(mes, ano) {
+    const receitas = todosLancamentosCache
+        .filter((item) => (item.movimentacao || '').trim().toLowerCase() === 'receita')
+        .filter((item) => (item.mes || '').toUpperCase() === mes.toUpperCase())
+        .filter((item) => String((item.data || '').split('/')[2] || '') === String(ano))
+        .reduce((soma, item) => soma + (Math.abs(Number(item.valor)) || 0), 0);
+
+    const despesas = todosLancamentosCache
+        .filter((item) => (item.movimentacao || '').trim().toLowerCase() === 'despesa')
+        .filter((item) => (item.mes || '').toUpperCase() === mes.toUpperCase())
+        .filter((item) => String((item.data || '').split('/')[2] || '') === String(ano))
+        .reduce((soma, item) => soma + (Math.abs(Number(item.valor)) || 0), 0);
+
+    return {
+        receitas,
+        despesas,
+        saldoLiquido: receitas - despesas
+    };
+}
+
+function formatarMoeda(valor) {
+    const numero = Number(valor) || 0;
+    return numero.toLocaleString('pt-BR', {
+        style: 'currency',
+        currency: 'BRL',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
+}
+
 function renderizarOrcamentoMensal() {
     const container = document.getElementById("orcamentoMensal");
     if (!container) return;
 
-    const mesSelect = document.getElementById("orcamentoMes");
-    const anoSelect = document.getElementById("orcamentoAno");
-    if (mesSelect && !mesSelect.value) {
-        mesSelect.value = MESES_NOMES[new Date().getMonth()];
-    }
-    if (anoSelect && !anoSelect.value) {
-        anoSelect.value = String(new Date().getFullYear());
-    }
+    const mesSelecionado = document.getElementById("orcamentoMes") ? document.getElementById("orcamentoMes").value : MESES_NOMES[new Date().getMonth()];
+    const anoSelecionado = document.getElementById("orcamentoAno") ? document.getElementById("orcamentoAno").value : String(new Date().getFullYear());
 
     const orcamento = obterOrcamentoMensalConfigurado();
-    const { mesSelecionado, anoSelecionado } = obterPeriodoOrcamento();
+    const categoriasPadrao = getCategoriasPadraoOrcamento();
     const categorias = Object.keys(orcamento).sort((a, b) => a.localeCompare(b));
 
-    const categoriasDetalhadas = categorias.map((categoria) => {
+    const totalMeta = categorias.reduce((total, categoria) => total + (Number(orcamento[categoria]) || 0), 0);
+    const totalGasto = categorias.reduce((total, categoria) => total + obterTotalGastoCategoria(categoria, mesSelecionado, anoSelecionado), 0);
+    const restante = totalMeta - totalGasto;
+    const percentualUsado = totalMeta > 0 ? Math.min((totalGasto / totalMeta) * 100, 100) : 0;
+
+    const consolidacaoMes = obterConsolidacaoPeriodo(mesSelecionado, anoSelecionado);
+    const mesAnteriorIndex = MESES_NOMES.indexOf((mesSelecionado || '').toUpperCase());
+    const mesAnteriorNome = mesAnteriorIndex > 0 ? MESES_NOMES[mesAnteriorIndex - 1] : MESES_NOMES[11];
+    const anoAnterior = mesAnteriorIndex > 0 ? Number(anoSelecionado) : Number(anoSelecionado) - 1;
+    const consolidacaoAnterior = obterConsolidacaoPeriodo(mesAnteriorNome, anoAnterior);
+    const variacaoMes = consolidacaoMes.saldoLiquido - consolidacaoAnterior.saldoLiquido;
+
+    const contas = obterResumoSaldosPorConta();
+    const contasPiores = contas
+        .filter((conta) => conta.variacao < 0)
+        .sort((a, b) => a.variacao - b.variacao)
+        .slice(0, 3);
+
+    const cardsCategoria = categoriasPadrao.map((item) => {
+        const valor = totalMeta > 0 ? (item.valor / totalMeta) * 100 : 0;
+        return `
+            <div class="finance-goal-row">
+                <div class="row-label">
+                    <span>${item.nome}</span>
+                    <span>${Math.round(valor)}%</span>
+                </div>
+                <div class="finance-goal-bar"><span style="width:${Math.min(valor, 100)}%; background:${item.cor};"></span></div>
+            </div>
+        `;
+    }).join('');
+
+    const linhasResumo = categorias.map((categoria) => {
         const limite = Number(orcamento[categoria]) || 0;
         const gasto = obterTotalGastoCategoria(categoria, mesSelecionado, anoSelecionado);
         const percentual = limite > 0 ? Math.min((gasto / limite) * 100, 100) : 0;
-        const restante = limite - gasto;
-        const alerta = gasto > limite;
-        const percentualMeta = limite > 0 ? Math.round((gasto / limite) * 100) : 0;
+        const frente = gasto > limite ? 'down' : 'up';
+        return `
+            <tr>
+                <td>${categoria}</td>
+                <td>${formatarMoeda(limite)}</td>
+                <td>${formatarMoeda(gasto)}</td>
+                <td>${percentual.toFixed(1)}%</td>
+                <td class="${frente}">${formatarMoeda(Math.abs(limite - gasto))}</td>
+            </tr>
+        `;
+    }).join('');
 
-        let statusText = 'Dentro do limite';
-        if (alerta) statusText = 'Acima do limite';
-        else if (percentualMeta >= 75) statusText = 'Perto do limite';
-
-        let dica = 'Ainda dá para gastar com consciência.';
-        if (alerta) {
-            dica = `Você excedeu a meta em R$ ${Math.abs(restante).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}. Revise esse gasto.`;
-        } else if (percentualMeta >= 75) {
-            dica = `Você já usou ${percentualMeta}% da meta. Fique atento ao restante do mês.`;
-        } else if (restante > 0) {
-            dica = `Ainda restam R$ ${restante.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} para essa categoria.`;
-        }
-
-        return {
-            categoria,
-            limite,
-            gasto,
-            restante,
-            alerta,
-            percentual,
-            statusText,
-            dica
-        };
-    });
-
-    const totalLimite = categoriasDetalhadas.reduce((sum, item) => sum + item.limite, 0);
-    const totalGasto = categoriasDetalhadas.reduce((sum, item) => sum + item.gasto, 0);
-    const restanteTotal = totalLimite - totalGasto;
-    const percentualTotal = totalLimite > 0 ? Math.min((totalGasto / totalLimite) * 100, 100) : 0;
-    const categoriasEmAlerta = categoriasDetalhadas.filter((item) => item.alerta || item.percentual >= 75);
-    const categoriaCritica = categoriasDetalhadas
-        .slice()
-        .sort((a, b) => (b.gasto / (b.limite || 1)) - (a.gasto / (a.limite || 1)))[0];
-
-    const mesAnterior = (() => {
-        const meses = MESES_NOMES;
-        const indexAtual = meses.indexOf(mesSelecionado.toUpperCase());
-        const anoAnterior = indexAtual === 0 ? Number(anoSelecionado) - 1 : Number(anoSelecionado);
-        const mesAnteriorNome = indexAtual === 0 ? meses[11] : meses[indexAtual - 1];
-        return { mesAnteriorNome, anoAnterior };
-    })();
-
-    const totalMesAnterior = categorias.reduce((sum, categoria) => {
-        const valor = obterTotalGastoCategoria(categoria, mesAnterior.mesAnteriorNome, mesAnterior.anoAnterior);
-        return sum + valor;
-    }, 0);
-
-    const variacaoMes = totalGasto - totalMesAnterior;
-    const variacaoDirecao = variacaoMes > 0 ? 'acima' : variacaoMes < 0 ? 'abaixo' : 'igual';
-    const variacaoTexto = `Comparado ao mês anterior (${mesAnterior.mesAnteriorNome} / ${mesAnterior.anoAnterior}), você está ${variacaoDirecao} em R$ ${Math.abs(variacaoMes).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}.`;
-
-    const categoriasSugeridas = categoriasDetalhadas
-        .filter((item) => item.alerta || item.percentual >= 75)
-        .sort((a, b) => (b.gasto / (b.limite || 1)) - (a.gasto / (a.limite || 1)))
-        .slice(0, 3)
-        .map((item) => `
-            <li>
-                <strong>${item.categoria}</strong> — ${item.alerta ? 'acima da meta' : 'próxima do limite'}.
-                Gasto atual: R$ ${item.gasto.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}.
-            </li>
-        `).join("");
-
-    const sugestoesLista = categoriasSugeridas || '<li>Sem alertas neste período. Mantenha o controle e evite gastos impulsivos.</li>';
-
-    const valorDisponivel = Math.max(restanteTotal, 0);
-    const valorExcedido = Math.max(Math.abs(restanteTotal), 0);
-    const mensagemDecisao = restanteTotal >= 0
-        ? `Você ainda tem R$ ${valorDisponivel.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} disponíveis para o mês. ${categoriaCritica ? `Foco em ${categoriaCritica.categoria}: ela é a categoria mais sensível no momento.` : 'Mantenha o ritmo e evite novos gastos impulsivos.'}`
-        : `O mês está acima da meta em R$ ${valorExcedido.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}. Ajuste os gastos de ${categoriaCritica ? categoriaCritica.categoria : 'algumas categorias'} para recuperar o equilíbrio.`;
-
-    const listaLinhas = categoriasDetalhadas.map((item) => `
-        <div class="orcamento-item ${item.alerta ? 'alerta' : ''}">
-            <div class="orcamento-header">
-                <strong>${item.categoria}</strong>
-                <span class="orcamento-status ${item.alerta ? 'status-alerta' : item.percentual >= 75 ? 'status-warning' : 'status-ok'}">
-                    ${item.statusText}
-                </span>
-            </div>
-            <div class="orcamento-main">
-                <div class="orcamento-valores">
-                    <span>Gasto: <strong>R$ ${item.gasto.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></span>
-                    <span>Meta: <strong>R$ ${item.limite.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></span>
+    const contasCards = contas.map((conta) => {
+        const tendencia = conta.variacao >= 0 ? 'positive' : 'negative';
+        const label = conta.variacao >= 0 ? 'Melhorou' : 'Diminuíu';
+        return `
+            <div class="finance-account-item">
+                <div class="finance-account-meta">
+                    <span class="finance-account-name">${conta.nome}</span>
+                    <span class="finance-account-value">${formatarMoeda(conta.atual)}</span>
                 </div>
-                <input
-                    class="orcamento-input"
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value="${item.limite}"
-                    data-categoria="${item.categoria}"
-                    aria-label="Orçamento para ${item.categoria}"
-                >
+                <span class="finance-account-trend ${tendencia}">${label}</span>
             </div>
-            <div class="orcamento-bar">
-                <span style="width: ${item.percentual}%"></span>
-            </div>
-            <div class="orcamento-meta">
-                <span>${item.restante >= 0 ? 'Restante' : 'Excedido'}: <strong>R$ ${Math.abs(item.restante).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></span>
-            </div>
-            <div class="orcamento-dica">${item.dica}</div>
-        </div>
-    `).join("");
+        `;
+    }).join('');
 
-    const alertaLista = categoriasEmAlerta.length > 0
-        ? categoriasEmAlerta.map((item) => `<li>${item.categoria}: ${item.alerta ? 'acima da meta' : 'próxima do limite'} (${item.gasto.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / ${item.limite.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })})</li>`).join("")
-        : '<li>Nenhuma categoria está em alerta neste período.</li>';
+    const contasAlertas = contasPiores.length > 0
+        ? contasPiores.map((conta) => `<li>${conta.nome}: ${formatarMoeda(conta.variacao)}</li>`).join('')
+        : '<li>Nenhuma conta em alerta neste período.</li>';
 
-    const resumoEstado = restanteTotal >= 0 ? 'positivo' : 'negativo';
-    const resumoLabel = restanteTotal >= 0 ? 'Disponível' : 'Excedido';
+    const salarioBase = Number((document.getElementById('initBanrisul') || {}).value || 0) + Number((document.getElementById('initNubank') || {}).value || 0);
+    const valorSalario = Number.isFinite(salarioBase) ? salarioBase : 0;
+    const salarioElem = document.getElementById('valorSalarioResumo');
+    if (salarioElem) salarioElem.textContent = formatarMoeda(valorSalario);
 
     container.innerHTML = `
-        <div class="orcamento-dashboard">
-            <div class="orcamento-resumo">
-                <div>
-                    <span class="orcamento-label">Gasto total</span>
-                    <strong>R$ ${totalGasto.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
+        <div class="finance-budget-grid">
+            <div class="finance-panel finance-panel--budget">
+                <h3>Gastos</h3>
+                <div class="finance-donut-box">
+                    <div class="finance-donut">
+                        <span class="finance-donut-label">${Math.round(percentualUsado)}%</span>
+                    </div>
                 </div>
-                <div>
-                    <span class="orcamento-label">Meta do mês</span>
-                    <strong>R$ ${totalLimite.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
-                </div>
-                <div class="${resumoEstado}">
-                    <span class="orcamento-label">${resumoLabel}</span>
-                    <strong>R$ ${Math.abs(restanteTotal).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
-                </div>
-            </div>
-
-            <div class="orcamento-insights">
-                <div class="orcamento-insight-card">
-                    <div class="insight-title">Resumo do mês</div>
-                    <div class="insight-value">${Math.round(percentualTotal)}% usado</div>
-                    <p>${mensagemDecisao}</p>
-                </div>
-                <div class="orcamento-insight-card">
-                    <div class="insight-title">Comparativo</div>
-                    <div class="insight-value ${variacaoMes >= 0 ? 'up' : 'down'}">${variacaoMes >= 0 ? '+' : '-'}R$ ${Math.abs(variacaoMes).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
-                    <p>${variacaoTexto}</p>
+                <div class="finance-legend">
+                    <span><i class="finance-dot" style="background:#5ca9eb;"></i>Custos fixos</span>
+                    <span><i class="finance-dot" style="background:#59c3a8;"></i>Conforto</span>
+                    <span><i class="finance-dot" style="background:#f0d37b;"></i>Metas</span>
+                    <span><i class="finance-dot" style="background:#9ad9b5;"></i>Liberdade financeira</span>
                 </div>
             </div>
 
-            <div class="orcamento-alertas">
-                <div class="alertas-header">Atenção</div>
-                <ul>${alertaLista}</ul>
+            <div class="finance-panel finance-panel--summary">
+                <h3>Resumo</h3>
+                <table class="finance-summary-table">
+                    <thead>
+                        <tr>
+                            <th>Budget</th>
+                            <th>Valor gasto</th>
+                            <th>Devo gastar</th>
+                            <th>Utilizado</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${linhasResumo}
+                    </tbody>
+                </table>
+                <div class="finance-summary-total">
+                    <strong>${formatarMoeda(totalGasto)}</strong>
+                    <strong class="${restante >= 0 ? 'up' : 'down'}">${restante >= 0 ? 'Disponível' : 'Acima da meta'} ${formatarMoeda(Math.abs(restante))}</strong>
+                </div>
             </div>
 
-            <div class="orcamento-acao">
-                <div class="alertas-header">O que ajustar agora</div>
-                <ul>${sugestoesLista}</ul>
+            <div class="finance-panel finance-panel--vertical">
+                <h3>Metas</h3>
+                <div class="finance-goal-list">
+                    ${cardsCategoria}
+                </div>
+            </div>
+        </div>
+
+        <div class="finance-card-grid">
+            <div class="finance-editor-card">
+                <h3>Custos fixos</h3>
+                <div class="finance-editor-list">
+                    <div class="finance-editor-item"><span class="name">Planos de saúde</span><span class="value">${formatarMoeda(700)}</span></div>
+                    <div class="finance-editor-item"><span class="name">Roupas normais</span><span class="value">${formatarMoeda(500)}</span></div>
+                    <div class="finance-editor-item"><span class="name">Manutenção básicos</span><span class="value">${formatarMoeda(1500)}</span></div>
+                    <div class="finance-editor-item"><span class="name">Seguro de vida</span><span class="value">${formatarMoeda(0)}</span></div>
+                </div>
             </div>
 
-            <div class="orcamento-lista">${listaLinhas}</div>
-            <button class="btn-salvar-orcamento" type="button" onclick="salvarOrcamentoMensal()">Salvar orçamento</button>
+            <div class="finance-editor-card">
+                <h3>Conforto</h3>
+                <div class="finance-editor-list">
+                    <div class="finance-editor-item"><span class="name">Compras</span><span class="value">${formatarMoeda(0)}</span></div>
+                    <div class="finance-editor-item"><span class="name">Manutenção Superf.</span><span class="value">${formatarMoeda(300)}</span></div>
+                    <div class="finance-editor-item"><span class="name">Assinatura de vinho</span><span class="value">${formatarMoeda(100)}</span></div>
+                    <div class="finance-editor-item"><span class="name">Café / pequenos</span><span class="value">${formatarMoeda(120)}</span></div>
+                </div>
+            </div>
+
+            <div class="finance-editor-card">
+                <h3>Metas</h3>
+                <div class="finance-editor-list">
+                    <div class="finance-editor-item"><span class="name">Fundo emergência</span><span class="value">${formatarMoeda(1000)}</span></div>
+                    <div class="finance-editor-item"><span class="name">Invest. aposentadoria</span><span class="value">${formatarMoeda(1500)}</span></div>
+                    <div class="finance-editor-item"><span class="name">Viagem</span><span class="value">${formatarMoeda(650)}</span></div>
+                    <div class="finance-editor-item"><span class="name">Reserva</span><span class="value">${formatarMoeda(500)}</span></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="finance-bottom-grid">
+            <div class="finance-quick-card">
+                <h3>Saldo por conta</h3>
+                <div class="finance-account-list">
+                    ${contasCards}
+                </div>
+            </div>
+
+            <div class="finance-quick-card">
+                <h3>Conciliação por período</h3>
+                <div class="finance-metric-box">
+                    <span class="label">Receitas</span>
+                    <strong>${formatarMoeda(consolidacaoMes.receitas)}</strong>
+                </div>
+                <div class="finance-metric-box">
+                    <span class="label">Despesas</span>
+                    <strong>${formatarMoeda(consolidacaoMes.despesas)}</strong>
+                </div>
+                <div class="finance-metric-box">
+                    <span class="label">Saldo líquido</span>
+                    <strong class="${consolidacaoMes.saldoLiquido >= 0 ? 'good' : 'bad'}">${formatarMoeda(consolidacaoMes.saldoLiquido)}</strong>
+                </div>
+            </div>
+
+            <div class="finance-quick-card">
+                <h3>Variação líquida</h3>
+                <div class="finance-metric-box">
+                    <span class="label">Mês atual</span>
+                    <strong class="${variacaoMes >= 0 ? 'good' : 'bad'}">${variacaoMes >= 0 ? '+' : '-'}${formatarMoeda(Math.abs(variacaoMes))}</strong>
+                    <p>Comparado com ${mesAnteriorNome} de ${anoAnterior}.</p>
+                </div>
+                <ul class="finance-legend-row">
+                    ${contasAlertas}
+                </ul>
+            </div>
         </div>
     `;
+}
+
+function abrirConfiguracaoSistema() {
+    const modal = document.getElementById('configModal');
+    if (!modal) return;
+    const mes = document.getElementById('configMesAtual');
+    const ano = document.getElementById('configAnoAtual');
+    if (mes) {
+        mes.innerHTML = MESES_NOMES.map((item) => `<option value="${item}">${item}</option>`).join('');
+        mes.value = document.getElementById('orcamentoMes') ? document.getElementById('orcamentoMes').value : MESES_NOMES[new Date().getMonth()];
+    }
+    if (ano) {
+        const startYear = 2024;
+        const currentYear = new Date().getFullYear();
+        const options = [];
+        for (let year = startYear; year <= currentYear + 2; year += 1) {
+            options.push(`<option value="${year}">${year}</option>`);
+        }
+        ano.innerHTML = options.join('');
+        ano.value = document.getElementById('orcamentoAno') ? document.getElementById('orcamentoAno').value : String(currentYear);
+    }
+    preencherInputsSaldos();
+    modal.classList.remove('hidden');
+    modal.setAttribute('aria-hidden', 'false');
+}
+
+function fecharConfiguracaoSistema() {
+    const modal = document.getElementById('configModal');
+    if (!modal) return;
+    modal.classList.add('hidden');
+    modal.setAttribute('aria-hidden', 'true');
+}
+
+function salvarConfiguracaoSistema() {
+    salvarSaldosIniciais();
+    if (document.getElementById('configMesAtual') && document.getElementById('orcamentoMes')) {
+        document.getElementById('orcamentoMes').value = document.getElementById('configMesAtual').value;
+    }
+    if (document.getElementById('configAnoAtual') && document.getElementById('orcamentoAno')) {
+        document.getElementById('orcamentoAno').value = document.getElementById('configAnoAtual').value;
+    }
+    renderizarOrcamentoMensal();
+    fecharConfiguracaoSistema();
+}
+
+function inicializarConfiguracaoSistema() {
+    const buttonAbrir = document.getElementById('btnAbrirConfiguracao');
+    const buttonFechar = document.getElementById('btnFecharConfiguracao');
+    const buttonSalvar = document.getElementById('btnSalvarConfiguracao');
+    const buttonReset = document.getElementById('btnResetConfig');
+
+    if (buttonAbrir) {
+        buttonAbrir.addEventListener('click', abrirConfiguracaoSistema);
+    }
+    if (buttonFechar) {
+        buttonFechar.addEventListener('click', fecharConfiguracaoSistema);
+    }
+    if (buttonSalvar) {
+        buttonSalvar.addEventListener('click', salvarConfiguracaoSistema);
+    }
+    if (buttonReset) {
+        buttonReset.addEventListener('click', () => {
+            localStorage.removeItem('init_banrisul');
+            localStorage.removeItem('init_nubank');
+            localStorage.removeItem('init_valealim');
+            localStorage.removeItem('init_valeref');
+            preencherInputsSaldos();
+            exibirBanner('Configuração padrão restaurada.', 'success', 3000);
+        });
+    }
+
+    const backdrop = document.querySelector('[data-close-config="true"]');
+    if (backdrop) {
+        backdrop.addEventListener('click', fecharConfiguracaoSistema);
+    }
+}
+
+function inicializarOrcamentoUi() {
+    const mes = document.getElementById('orcamentoMes');
+    const ano = document.getElementById('orcamentoAno');
+    if (mes && !mes.value) {
+        mes.value = MESES_NOMES[new Date().getMonth()];
+    }
+    if (ano && !ano.value) {
+        ano.value = String(new Date().getFullYear());
+    }
+    inicializarConfiguracaoSistema();
 }
 
 function iniciarEscutaRealtime() {

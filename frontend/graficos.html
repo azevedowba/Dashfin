@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="js/app-theme.js"></script>
     <title>Dashfin - Análise & Gráficos</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -12,25 +13,29 @@
 </head>
 <body>
 
-<header class="main-header">
-    <div class="brand">
-        <span class="brand-mark">D</span>
-        <span class="logo">Dashfin</span>
-    </div>
+<div id="appContent">
+    <div class="finance-shell">
+        <aside class="finance-sidebar">
+            <div class="finance-brand">
+                <span class="finance-badge">D</span>
+                <span class="finance-brand-text">Dashfin</span>
+            </div>
 
-    <nav aria-label="Navegação principal">
-        <a href="index.html" class="nav-link">Dashboard &amp; Histórico</a>
-        <a href="orcamento.html" class="nav-link">Orçamento</a>
-        <a href="graficos.html" class="nav-link active">Análise &amp; Gráficos</a>
-        <a href="operacoes.html" class="nav-link">Lançamentos &amp; Importação</a>
-    </nav>
+            <nav class="finance-nav" aria-label="Navegação principal">
+                <a class="finance-nav-item" href="index.html">Dashboard &amp; Histórico</a>
+                <a class="finance-nav-item" href="orcamento.html">Orçamento doméstico</a>
+                <a class="finance-nav-item active" href="graficos.html">Análise &amp; Gráficos</a>
+                <a class="finance-nav-item" href="operacoes.html">Lançamentos &amp; Importação</a>
+            </nav>
 
-    <div class="header-actions">
-        <button id="btn-logout" class="btn-header-logout" type="button">Sair</button>
-    </div>
-</header>
+            <div class="finance-side-footer">
+                <button id="btn-theme-toggle" class="btn-theme-toggle" type="button" aria-pressed="false">Tema escuro</button>
+                <button id="btn-logout" class="btn-header-logout" type="button">Sair</button>
+            </div>
+        </aside>
 
-<div class="container">
+        <main class="finance-main">
+            <div class="container">
     
     <div class="filter-section">
         <div class="filter-group">
@@ -112,6 +117,9 @@
         </div>
 
     </div>
+            </div>
+        </main>
+    </div>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
@@ -129,6 +137,17 @@
     let instanceChartAlfabetic = null;
 
     const mesesNomes = ["JANEIRO","FEVEREIRO","MARO","ABRIL","MAIO","JUNHO","JULHO","AGOSTO","SETEMBRO","OUTUBRO","NOVEMBRO","DEZEMBRO"];
+
+    function aplicarTemaGraficos(theme) {
+        Chart.defaults.color = theme === 'dark' ? '#c0cec4' : '#526159';
+        Chart.defaults.borderColor = theme === 'dark' ? '#3a4a40' : '#d9e3dc';
+        [instanceChartMensal, instanceChartRanking, instanceChartAlfabetic].forEach(chart => {
+            if (chart) chart.update();
+        });
+    }
+
+    aplicarTemaGraficos(document.documentElement.dataset.theme);
+    window.addEventListener('dashfin:themechange', event => aplicarTemaGraficos(event.detail.theme));
 
     function gerarCorPorString(str) {
         let hash = 0;
