@@ -278,6 +278,9 @@
 
         const googleButton = document.getElementById("btn-login");
         googleButton.setAttribute("type", "button");
+        googleButton.addEventListener("click", () => {
+            if (typeof loginComGoogle === "function") loginComGoogle();
+        });
     }
 
     async function entrarComEmail(event) {
