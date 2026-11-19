@@ -311,7 +311,202 @@ body { line-height: var(--base-line-height); -webkit-font-smoothing:antialiased;
     color: var(--text-secondary);
 }
 
-@media (prefers-reduced-motion: reduce) {
-    *, *::before, *::after { scroll-behavior: auto !important; transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+/* Shell compartilhado premium */
+.finance-shell { position: relative; }
+.finance-sidebar { position: sticky; top: 0; height: 100vh; }
+.finance-main { min-width: 0; }
+.sidebar-collapsed { grid-template-columns: 78px minmax(0, 1fr) !important; }
+.sidebar-collapsed .finance-brand { justify-content: center; padding-inline: 0; }
+.sidebar-collapsed .finance-brand-text,
+.sidebar-collapsed .finance-nav-item-label,
+.sidebar-collapsed .finance-side-footer { display: none; }
+.sidebar-collapsed .finance-nav-item { font-size: 0; justify-content: center; }
+
+.dashfin-topbar {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    min-height: 76px;
+    margin: -26px -24px 22px;
+    padding: 12px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    background: rgba(17, 25, 21, 0.88);
+    backdrop-filter: blur(18px);
 }
+.dashfin-topbar-start, .dashfin-topbar-actions, .dashfin-profile-button, .dashfin-profile-copy {
+    display: flex;
+    align-items: center;
+}
+.dashfin-topbar-start { gap: 12px; }
+.dashfin-topbar-actions { gap: 10px; }
+.dashfin-menu-toggle {
+    width: 42px;
+    height: 42px;
+    display: grid;
+    place-items: center;
+    border: 1px solid rgba(255,255,255,0.09);
+    border-radius: 12px;
+    background: rgba(255,255,255,0.035);
+    color: #edf5ef;
+    cursor: pointer;
+}
+.dashfin-menu-toggle svg { width: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; }
+.dashfin-page-context { display: grid; line-height: 1.15; }
+.dashfin-page-context span { color: rgba(237,245,239,0.52); font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em; }
+.dashfin-page-context strong { margin-top: 4px; font-size: 15px; }
+.dashfin-global-search {
+    min-width: 190px;
+    height: 42px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    background: rgba(255,255,255,0.035);
+    color: rgba(237,245,239,0.62);
+    padding: 0 10px 0 12px;
+    cursor: pointer;
+}
+.dashfin-global-search svg { width: 17px; fill: none; stroke: currentColor; stroke-width: 1.8; }
+.dashfin-global-search span { flex: 1; text-align: left; }
+.dashfin-global-search kbd { padding: 3px 6px; border: 1px solid rgba(255,255,255,0.08); border-radius: 6px; background: rgba(0,0,0,0.12); font-size: 11px; }
+.dashfin-add-button {
+    height: 42px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: 0;
+    border-radius: 12px;
+    padding: 0 15px;
+    background: linear-gradient(135deg, #69a987, #3d8062);
+    color: white;
+    font-weight: 800;
+    box-shadow: 0 9px 24px rgba(75, 145, 111, 0.18);
+    cursor: pointer;
+}
+.dashfin-add-button svg { width: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+.dashfin-profile { position: relative; }
+.dashfin-profile-button {
+    height: 42px;
+    gap: 8px;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    background: rgba(255,255,255,0.035);
+    color: #edf5ef;
+    padding: 5px 8px 5px 5px;
+    cursor: pointer;
+}
+.dashfin-profile-button > svg { width: 16px; fill: none; stroke: currentColor; stroke-width: 1.8; }
+.dashfin-profile-avatar {
+    width: 32px;
+    height: 32px;
+    display: grid;
+    place-items: center;
+    border-radius: 9px;
+    background: linear-gradient(135deg, #d5af65, #a98542);
+    color: #171714;
+    font-size: 11px;
+    font-weight: 900;
+}
+.dashfin-profile-copy { display: grid; line-height: 1.15; text-align: left; }
+.dashfin-profile-copy strong { font-size: 12px; }
+.dashfin-profile-copy small { margin-top: 3px; color: #78c394; font-size: 10px; }
+.dashfin-profile-menu {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 8px);
+    width: 220px;
+    padding: 8px;
+    border: 1px solid rgba(255,255,255,0.09);
+    border-radius: 14px;
+    background: #19241f;
+    box-shadow: 0 18px 44px rgba(0,0,0,0.34);
+}
+.dashfin-profile-info { display: grid; gap: 3px; padding: 8px 9px 12px; border-bottom: 1px solid rgba(255,255,255,0.07); }
+.dashfin-profile-info strong { font-size: 13px; }
+.dashfin-profile-info span { color: rgba(237,245,239,0.55); font-size: 11px; overflow-wrap: anywhere; }
+.dashfin-profile-menu-item { width: 100%; border: 0; border-radius: 9px; background: transparent; color: #edf5ef; text-align: left; padding: 10px 9px; cursor: pointer; }
+.dashfin-profile-menu-item:hover { background: rgba(255,255,255,0.06); }
+
+.dashfin-transaction-modal { position: fixed; inset: 0; z-index: 10000; display: none; align-items: center; justify-content: center; padding: 24px; }
+.dashfin-transaction-modal.visible { display: flex; }
+.dashfin-transaction-backdrop { position: absolute; inset: 0; background: rgba(7, 12, 10, 0.72); backdrop-filter: blur(8px); }
+.dashfin-transaction-panel { position: relative; width: min(660px, 100%); max-height: calc(100vh - 48px); overflow-y: auto; border: 1px solid rgba(255,255,255,0.09); border-radius: 20px; background: #17211d; color: #edf5ef; box-shadow: 0 28px 80px rgba(0,0,0,0.45); }
+.dashfin-transaction-panel header { display: flex; align-items: center; justify-content: space-between; padding: 22px 24px 18px; border-bottom: 1px solid rgba(255,255,255,0.07); }
+.dashfin-transaction-panel header div { display: grid; }
+.dashfin-transaction-panel header span { color: #79bd98; font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em; }
+.dashfin-transaction-panel h2 { margin: 4px 0 0; font-size: 22px; }
+.dashfin-transaction-close { width: 36px; height: 36px; border: 1px solid rgba(255,255,255,0.09); border-radius: 10px; background: rgba(255,255,255,0.04); color: #edf5ef; font-size: 20px; cursor: pointer; }
+.dashfin-transaction-panel form { padding: 20px 24px 24px; }
+.dashfin-type-switch { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 18px; }
+.dashfin-type-switch label { cursor: pointer; }
+.dashfin-type-switch input { position: absolute; opacity: 0; }
+.dashfin-type-switch span { display: grid; place-items: center; height: 42px; border: 1px solid rgba(255,255,255,0.08); border-radius: 11px; color: rgba(237,245,239,0.72); background: rgba(255,255,255,0.035); font-size: 13px; font-weight: 800; }
+.dashfin-type-switch input:checked + span { border-color: rgba(121,189,152,0.55); background: rgba(121,189,152,0.12); color: #a9d8bc; }
+.dashfin-transaction-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.dashfin-field { display: grid; gap: 7px; color: rgba(237,245,239,0.68); font-size: 12px; font-weight: 700; }
+.dashfin-field input, .dashfin-field select { width: 100%; height: 44px; border: 1px solid rgba(255,255,255,0.09); border-radius: 10px; background: #202d27; color: #edf5ef; padding: 0 12px; }
+.dashfin-paid-check { display: inline-flex; align-items: center; gap: 8px; margin-top: 16px; color: rgba(237,245,239,0.72); font-size: 13px; }
+.dashfin-transaction-panel footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 22px; padding-top: 18px; border-top: 1px solid rgba(255,255,255,0.07); }
+.dashfin-transaction-cancel, .dashfin-transaction-save { height: 42px; border-radius: 10px; padding: 0 16px; font-weight: 800; cursor: pointer; }
+.dashfin-transaction-cancel { border: 1px solid rgba(255,255,255,0.09); background: transparent; color: #edf5ef; }
+.dashfin-transaction-save { border: 0; background: linear-gradient(135deg, #69a987, #3d8062); color: white; }
+
+.login-gate { background: radial-gradient(circle at 18% 20%, rgba(211,174,100,0.14), transparent 28%), linear-gradient(145deg, #111a16, #1d3027) !important; }
+.login-gate-box { position: relative; max-width: 430px; padding: 34px !important; border-radius: 20px !important; text-align: left !important; background: rgba(21,31,26,0.96) !important; border: 1px solid rgba(255,255,255,0.09) !important; color: #edf5ef; }
+.dashfin-login-brand { display: flex; align-items: center; gap: 9px; margin-bottom: 28px; }
+.dashfin-login-brand span { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 10px; background: linear-gradient(135deg,#dcb75f,#a9823e); color:#181915; font-weight:900; }
+.dashfin-login-brand strong { color: #dcb75f; letter-spacing: 0.04em; }
+.dashfin-login-copy span { color: #79bd98; text-transform: uppercase; letter-spacing: 0.12em; font-size: 10px; font-weight: 800; }
+.dashfin-login-copy h1 { margin: 6px 0 8px !important; color: #edf5ef !important; }
+.dashfin-login-copy p { margin: 0 0 22px !important; color: rgba(237,245,239,0.58) !important; }
+.dashfin-login-form { display: grid; gap: 12px; }
+.dashfin-login-form label { display: grid; gap: 7px; color: rgba(237,245,239,0.68); font-size: 12px; font-weight: 700; }
+.dashfin-login-form input { height: 48px; border: 1px solid rgba(255,255,255,0.09); border-radius: 11px; background: #202d27; color: #edf5ef; padding: 0 13px; }
+.dashfin-email-login { height: 48px; margin-top: 3px; border: 0; border-radius: 11px; background: linear-gradient(135deg,#69a987,#3d8062); color: white; font-weight: 800; cursor: pointer; }
+.dashfin-login-divider { display: flex; align-items: center; gap: 10px; margin: 16px 0; color: rgba(237,245,239,0.42); font-size: 11px; }
+.dashfin-login-divider::before, .dashfin-login-divider::after { content:""; height:1px; flex:1; background: rgba(255,255,255,0.08); }
+.btn-login-gate { width: 100%; height: 48px; display: flex; align-items:center; justify-content:center; gap:9px; border: 1px solid rgba(255,255,255,0.1) !important; border-radius:11px !important; background:#edf5ef !important; color:#202622 !important; box-shadow:none !important; }
+.dashfin-google-mark { width:24px; height:24px; display:grid; place-items:center; border-radius:50%; background:white; color:#4285f4; border:1px solid #dfe3e1; font-weight:900; }
+.dashfin-create-account { width:100%; margin-top:12px; border:0; background:transparent; color:#79bd98; font-size:12px; font-weight:800; cursor:pointer; }
+.login-gate-erro { display:none; margin-top:12px; color:#f08d8d !important; font-size:12px; }
+
+:root[data-theme="light"] .dashfin-topbar { background: rgba(248,250,249,0.92); border-bottom-color:#d9e3dc; }
+:root[data-theme="light"] .dashfin-menu-toggle, :root[data-theme="light"] .dashfin-global-search, :root[data-theme="light"] .dashfin-profile-button { border-color:#d9e3dc; background:#fff; color:#26332d; }
+:root[data-theme="light"] .dashfin-page-context span { color:#65756b; }
+:root[data-theme="light"] .dashfin-profile-menu { background:#fff; border-color:#d9e3dc; box-shadow:0 18px 44px rgba(15,23,42,0.14); }
+:root[data-theme="light"] .dashfin-profile-info, :root[data-theme="light"] .dashfin-profile-menu-item { color:#26332d; }
+
+@media (max-width: 1100px) {
+    .dashfin-global-search { min-width: 42px; width:42px; justify-content:center; padding:0; }
+    .dashfin-global-search span, .dashfin-global-search kbd { display:none; }
+}
+@media (max-width: 768px) {
+    .dashfin-topbar { min-height:64px; margin:-18px -16px 16px; padding:10px 12px; }
+    .dashfin-page-context { display:none; }
+    .dashfin-profile-copy, .dashfin-profile-button > svg { display:none; }
+    .dashfin-add-button { width:42px; padding:0; justify-content:center; }
+    .dashfin-add-button span { display:none; }
+    .dashfin-profile-button { width:42px; padding:5px; justify-content:center; }
+    .dashfin-transaction-modal { padding:12px; align-items:flex-end; }
+    .dashfin-transaction-panel { max-height:calc(100vh - 24px); border-radius:18px 18px 12px 12px; }
+    .dashfin-transaction-grid { grid-template-columns:1fr; }
+    .dashfin-transaction-panel form { padding:16px; }
+    .login-gate-box { padding:26px 20px !important; }
+}
+
+/* Estilos para agrupamento avançado do menu lateral recolhido e ampliado */
+.finance-nav-section { display: grid; gap: 5px; }
+.finance-nav-section + .finance-nav-section { margin-top: 8px; }
+.finance-nav-section-label { padding: 4px 10px 2px; color: rgba(237,245,239,0.42); font-size: 9px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; }
+.finance-nav-item { display: flex !important; align-items: center; gap: 10px; }
+.finance-nav-icon { width: 18px; height: 18px; display: grid; place-items: center; flex: 0 0 18px; opacity: 0.78; }
+.finance-nav-icon svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.sidebar-collapsed .finance-nav-section-label { display: none; }
+.sidebar-collapsed .finance-nav-item { padding-inline: 0; }
+.sidebar-collapsed .finance-nav-icon { margin: 0 auto; }
 
